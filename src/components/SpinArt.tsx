@@ -29,6 +29,7 @@ export default function SpinArt() {
   const [speedLevel, setSpeedLevel] = useState(0); // 0: stop, 1: slow, 2: medium, 3: fast
   const [color, setColor] = useState('#000000');
   const [direction, setDirection] = useState(1); // 1 for right (positive), -1 for left (negative)
+  const [showIntro, setShowIntro] = useState(true);
   
   const [isExporting, setIsExporting] = useState(false);
 
@@ -371,9 +372,7 @@ export default function SpinArt() {
         ctx.save();
         ctx.translate(exportCanvas.width / 2, exportCanvas.height / 2);
         ctx.rotate(currentRot);
-        // The paper is 600x600, maybe scale it up a bit for 1080p?
-        // 600 fits in 1080 nicely. Let's keep it 1:1 or maybe 1.5x
-        // Or simply draw centered.
+        
         const scale = 1.2;
         ctx.scale(scale, scale);
         ctx.translate(-CANVAS_SIZE / 2, -CANVAS_SIZE / 2);
@@ -388,12 +387,6 @@ export default function SpinArt() {
         currentRot += SPEED;
         frame++;
 
-        // Use requestAnimationFrame to not block UI completely, but we want to capture at FPS speed?
-        // captureStream captures when the frame is available. 
-        // We should try to pace it roughly or just blast through if captureStream handles it.
-        // Chrome's captureStream might capture actual timing. 
-        // To ensure smooth video regardless of rendering speed, we might need a more complex setup or just rely on high performance.
-        // A simple timeout loop matching FPS is safer for MediaRecorder time-based recording.
         setTimeout(drawFrame, 1000 / FPS);
     };
 
@@ -549,8 +542,38 @@ export default function SpinArt() {
         }
     }
 
+    // Intro Overlay
+    if (showIntro) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      ctx.font = 'bold 24px sans-serif';
+      ctx.fillText('Willkommen bei Spin Art!', canvas.width / 2, canvas.height / 2 - 40);
+      
+      ctx.font = '16px sans-serif';
+      const lines = [
+        "Wählen Sie einen Stift und drücken Sie",
+        "Pfeil nach links oder nach rechts.",
+        "Auf höchster Geschwindigkeit entstehen",
+        "aus Ihren Zeichnungen mit etwas Übung",
+        "unverwechselbare Animationen!"
+      ];
+      
+      lines.forEach((line, i) => {
+        ctx.fillText(line, canvas.width / 2, canvas.height / 2 + 10 + (i * 25));
+      });
+      
+      ctx.font = 'italic 14px sans-serif';
+      ctx.fillStyle = '#cccccc';
+      ctx.fillText('(Klicke zum Starten)', canvas.width / 2, canvas.height / 2 + 150);
+    }
+
     animationFrameRef.current = requestAnimationFrame(render);
-  }, [getPaperCoordinates, activeMode]);
+  }, [getPaperCoordinates, activeMode, showIntro]);
 
   useEffect(() => {
     animationFrameRef.current = requestAnimationFrame(render);
@@ -561,6 +584,11 @@ export default function SpinArt() {
 
   // Event Handlers
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (showIntro) {
+      setShowIntro(false);
+      return;
+    }
+
     if (activeMode === 'shape') {
         const pos = getPaperCoordinates(e.clientX, e.clientY, rotationRef.current);
         const paperCtx = paperCanvasRef.current?.getContext('2d');
