@@ -30,6 +30,7 @@ export default function SpinArt() {
   const [color, setColor] = useState('#000000');
   const [direction, setDirection] = useState(1); // 1 for right (positive), -1 for left (negative)
   const [showIntro, setShowIntro] = useState(true);
+  const [showMobileWarning, setShowMobileWarning] = useState(false);
   
   const [isExporting, setIsExporting] = useState(false);
 
@@ -46,6 +47,57 @@ export default function SpinArt() {
   const [shapeSize, setShapeSize] = useState(50);
   const [shapeRotation, setShapeRotation] = useState(0);
   const [isShapeFilled, setIsShapeFilled] = useState(true);
+
+  // History State
+  const [history, setHistory] = useState<ImageData[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  const addToHistory = useCallback(() => {
+    const paper = paperCanvasRef.current;
+    const ctx = paper?.getContext('2d');
+    if (!ctx) return;
+
+    const imageData = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1);
+      newHistory.push(imageData);
+      if (newHistory.length > 20) {
+        newHistory.shift();
+      }
+      return newHistory;
+    });
+    
+    setHistoryIndex(prev => {
+      const newLen = (prev + 1) + 1; // sliced + pushed
+      if (newLen > 20) return 19;
+      return prev + 1;
+    });
+  }, [historyIndex]);
+
+  const undo = useCallback(() => {
+      if (historyIndex > 0) {
+          const newIndex = historyIndex - 1;
+          setHistoryIndex(newIndex);
+          const paper = paperCanvasRef.current;
+          const ctx = paper?.getContext('2d');
+          if (ctx && history[newIndex]) {
+              ctx.putImageData(history[newIndex], 0, 0);
+          }
+      }
+  }, [history, historyIndex]);
+
+  const redo = useCallback(() => {
+      if (historyIndex < history.length - 1) {
+          const newIndex = historyIndex + 1;
+          setHistoryIndex(newIndex);
+          const paper = paperCanvasRef.current;
+          const ctx = paper?.getContext('2d');
+          if (ctx && history[newIndex]) {
+              ctx.putImageData(history[newIndex], 0, 0);
+          }
+      }
+  }, [history, historyIndex]);
 
   // Speed configuration state
   const [configSpeeds, setConfigSpeeds] = useState<number[]>([0.02, 0.05, 0.1]);
@@ -93,6 +145,19 @@ export default function SpinArt() {
     shapeSettingsRef.current = { color: shapeColor, size: shapeSize, type: selectedShape, rotation: shapeRotation, filled: isShapeFilled };
   }, [shapeColor, shapeSize, selectedShape, shapeRotation, isShapeFilled]);
 
+  useEffect(() => {
+      const checkMobile = () => {
+          const userAgent = typeof window.navigator === "undefined" ? "" : navigator.userAgent;
+          const mobile = Boolean(userAgent.match(/Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i));
+          if (mobile || window.innerWidth < 1024) {
+              setShowMobileWarning(true);
+          }
+      };
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Initialize paper canvas
   useEffect(() => {
     if (!paperCanvasRef.current) {
@@ -105,6 +170,11 @@ export default function SpinArt() {
         ctx.beginPath();
         ctx.arc(CANVAS_SIZE/2, CANVAS_SIZE/2, DISC_RADIUS, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Initialize history
+        const initialData = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+        setHistory([initialData]);
+        setHistoryIndex(0);
       }
       paperCanvasRef.current = pc;
     }
@@ -604,6 +674,7 @@ export default function SpinArt() {
                 shapeSettingsRef.current.filled,
                 rotationRef.current // Compensate for current rotation
             );
+            addToHistory();
         }
         return;
     }
@@ -646,6 +717,7 @@ export default function SpinArt() {
           }
           
           paperCtx.restore();
+          addToHistory();
         }
         lineStartPaperPosRef.current = null;
       }
@@ -663,6 +735,9 @@ export default function SpinArt() {
   };
 
   const handleMouseUp = () => {
+    if (isDrawingRef.current) {
+        addToHistory();
+    }
     isDrawingRef.current = false;
     if (activeMode === 'draw') {
         currentMouseScreenPosRef.current = null;
@@ -677,6 +752,27 @@ export default function SpinArt() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white p-4 select-none">
+      {/* Mobile Warning Overlay */}
+      {showMobileWarning && (
+          <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-center p-8 text-center">
+              <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md border border-gray-700">
+                  <div className="w-16 h-16 bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                  </div>
+                  <h2 className="text-2xl font-bold mb-4 text-white">Nicht für Mobilgeräte optimiert</h2>
+                  <p className="text-gray-300 mb-6">
+                      Diese App ist für die Nutzung auf Desktop-Computern mit Tastatur und Maus ausgelegt. Die Steuerung und das Layout funktionieren auf Touchscreens möglicherweise nicht wie erwartet.
+                  </p>
+                  <button
+                      onClick={() => setShowMobileWarning(false)}
+                      className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors border border-gray-600"
+                  >
+                      Trotzdem fortfahren
+                  </button>
+              </div>
+          </div>
+      )}
+
       <div className="text-center mb-6">
         <h1 className="text-3xl font-bold mb-2">Spin Art</h1>
         <p className="text-gray-300">
@@ -688,6 +784,26 @@ export default function SpinArt() {
           <br />
           Drücke <span className="font-bold text-yellow-400 border px-2 py-0.5 rounded border-gray-600 ml-2">Leertaste</span> um zu Stoppen & Zurückzusetzen.
         </p>
+      </div>
+
+      {/* Undo/Redo Controls */}
+      <div className="flex justify-center gap-4 mb-6">
+        <button 
+            onClick={undo}
+            disabled={historyIndex <= 0 || isExporting}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors ${historyIndex > 0 && !isExporting ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+            Rückgängig
+        </button>
+        <button 
+            onClick={redo}
+            disabled={historyIndex >= history.length - 1 || isExporting}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors ${historyIndex < history.length - 1 && !isExporting ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+            Wiederholen
+        </button>
       </div>
 
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8">
@@ -948,6 +1064,7 @@ export default function SpinArt() {
                   ctx.arc(CANVAS_SIZE/2, CANVAS_SIZE/2, DISC_RADIUS, 0, Math.PI * 2);
                   ctx.fill();
                   ctx.restore();
+                  addToHistory();
                 }
               }}
               className="w-full px-4 py-3 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold transition-colors flex items-center justify-center gap-2 mb-2"
