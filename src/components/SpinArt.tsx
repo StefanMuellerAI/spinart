@@ -33,6 +33,17 @@ export default function SpinArt() {
   const [showMobileWarning, setShowMobileWarning] = useState(false);
   
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Export restrictions state
+  const [drawCount, setDrawCount] = useState(0);
+  const [isTimeRequirementMet, setIsTimeRequirementMet] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsTimeRequirementMet(true);
+    }, 120000); // 2 minutes
+    return () => clearTimeout(timer);
+  }, []);
 
   // Tool State
   const [toolSize, setToolSize] = useState(5);
@@ -382,7 +393,8 @@ export default function SpinArt() {
     setIsExporting(true);
 
     const ROTATIONS = 20;
-    const SPEED = 0.1; // Max speed per frame (approx)
+    // Use Speed Level 3 (index 2)
+    const SPEED = configSpeeds[2]; 
     const FPS = 60;
     const TOTAL_FRAMES = Math.ceil((ROTATIONS * 2 * Math.PI) / SPEED);
     
@@ -396,7 +408,94 @@ export default function SpinArt() {
         return;
     }
 
-    // Setup MediaRecorder
+    const drawFrameToCanvas = (currentRot: number) => {
+        // Clear background
+        ctx.fillStyle = '#1f2937'; // Match bg-gray-800
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+        // Draw paper
+        ctx.save();
+        ctx.translate(exportCanvas.width / 2, exportCanvas.height / 2);
+        ctx.rotate(currentRot);
+        
+        const scale = 1.2;
+        ctx.scale(scale, scale);
+        ctx.translate(-CANVAS_SIZE / 2, -CANVAS_SIZE / 2);
+        
+        if (paperCanvasRef.current) {
+            ctx.drawImage(paperCanvasRef.current, 0, 0);
+        }
+        
+        ctx.restore();
+    };
+
+    // Try using mp4-muxer and WebCodecs (best quality/compatibility)
+    if (typeof VideoEncoder !== 'undefined' && typeof VideoFrame !== 'undefined') {
+        try {
+            const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
+            
+            const muxer = new Muxer({
+                target: new ArrayBufferTarget(),
+                video: {
+                    codec: 'avc',
+                    width: exportCanvas.width,
+                    height: exportCanvas.height
+                },
+                fastStart: 'in-memory',
+                firstTimestampBehavior: 'offset'
+            });
+
+            const videoEncoder = new VideoEncoder({
+                output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+                error: (e) => console.error(e)
+            });
+
+            videoEncoder.configure({
+                codec: 'avc1.420033', // H.264 Main Profile Level 5.1
+                width: exportCanvas.width,
+                height: exportCanvas.height,
+                bitrate: 12_000_000,
+                framerate: FPS
+            });
+
+            let currentRot = 0;
+            
+            for (let i = 0; i < TOTAL_FRAMES; i++) {
+                drawFrameToCanvas(currentRot);
+                
+                const videoFrame = new VideoFrame(exportCanvas, { 
+                    timestamp: i * (1000000 / FPS) 
+                });
+                
+                videoEncoder.encode(videoFrame, { keyFrame: i % (FPS * 2) === 0 });
+                videoFrame.close();
+                
+                currentRot += SPEED;
+                
+                // Yield to main thread occasionally to update UI/prevent freeze
+                if (i % 10 === 0) await new Promise(r => setTimeout(r, 0));
+            }
+
+            await videoEncoder.flush();
+            muxer.finalize();
+            
+            const { buffer } = muxer.target;
+            const blob = new Blob([buffer], { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'spin-art-export.mp4';
+            a.click();
+            URL.revokeObjectURL(url);
+            setIsExporting(false);
+            return;
+
+        } catch (e) {
+            console.error("WebCodecs export failed, falling back to MediaRecorder", e);
+        }
+    }
+
+    // Fallback Setup MediaRecorder
     const stream = exportCanvas.captureStream(FPS);
     let mimeType = 'video/webm';
     if (MediaRecorder.isTypeSupported('video/mp4')) {
@@ -434,24 +533,7 @@ export default function SpinArt() {
             return;
         }
 
-        // Clear background
-        ctx.fillStyle = '#1f2937'; // Match bg-gray-800
-        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-
-        // Draw paper
-        ctx.save();
-        ctx.translate(exportCanvas.width / 2, exportCanvas.height / 2);
-        ctx.rotate(currentRot);
-        
-        const scale = 1.2;
-        ctx.scale(scale, scale);
-        ctx.translate(-CANVAS_SIZE / 2, -CANVAS_SIZE / 2);
-        
-        if (paperCanvasRef.current) {
-            ctx.drawImage(paperCanvasRef.current, 0, 0);
-        }
-        
-        ctx.restore();
+        drawFrameToCanvas(currentRot);
 
         // Advance rotation
         currentRot += SPEED;
@@ -675,6 +757,7 @@ export default function SpinArt() {
                 rotationRef.current // Compensate for current rotation
             );
             addToHistory();
+            setDrawCount(prev => prev + 1);
         }
         return;
     }
@@ -718,6 +801,7 @@ export default function SpinArt() {
           
           paperCtx.restore();
           addToHistory();
+          setDrawCount(prev => prev + 1);
         }
         lineStartPaperPosRef.current = null;
       }
@@ -737,6 +821,7 @@ export default function SpinArt() {
   const handleMouseUp = () => {
     if (isDrawingRef.current) {
         addToHistory();
+        setDrawCount(prev => prev + 1);
     }
     isDrawingRef.current = false;
     if (activeMode === 'draw') {
@@ -1075,11 +1160,25 @@ export default function SpinArt() {
 
             <button 
               onClick={handleExportVideo}
-              disabled={isExporting}
-              className={`w-full px-4 py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${isExporting ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
+              disabled={isExporting || !isTimeRequirementMet || drawCount < 15}
+              title={(!isTimeRequirementMet || drawCount < 15) ? `Export wird freigeschaltet nach 2 Min. Nutzung und 15 Zeichnungen (Aktuell: ${Math.floor((performance.now()/1000)/60)}m / ${drawCount})` : "Video exportieren"}
+              className={`w-full px-4 py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${
+                isExporting || !isTimeRequirementMet || drawCount < 15 
+                  ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+              }`}
             >
               {isExporting ? (
                 <span>Export läuft...</span>
+              ) : (!isTimeRequirementMet || drawCount < 15) ? (
+                 <span className="text-sm flex flex-col leading-tight items-center">
+                    <span>Export gesperrt</span>
+                    <span className="text-[10px] font-normal opacity-80">
+                        {!isTimeRequirementMet ? "Warte 2 Min." : ""}
+                        {!isTimeRequirementMet && drawCount < 15 ? " & " : ""}
+                        {drawCount < 15 ? `Zeichne noch ${15 - drawCount}x` : ""}
+                    </span>
+                 </span>
               ) : (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
