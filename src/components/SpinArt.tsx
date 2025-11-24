@@ -638,6 +638,39 @@ export default function SpinArt() {
     // So the coordinate system origin (0,0) is at top-left of paper.
     // Center is (300, 300).
     // Handle is at (300 + 275, 300).
+    
+    // Draw Degree Ticks (Scale)
+    ctx.save();
+    ctx.strokeStyle = '#0ea5e9'; // Light blue (sky-500)
+    for (let i = 0; i < 360; i++) {
+        const angle = (i * Math.PI) / 180;
+        const isCardinal = i % 90 === 0;
+        const isMajor = i % 10 === 0;
+        
+        // Length of ticks
+        const outerR = 290;
+        const innerR = isCardinal ? 260 : (isMajor ? 270 : 280);
+        
+        // Skip drawing tick where handle is (approx +/- 5 degrees around 0)
+        // Handle is at 0 degrees (angle 0).
+        // 0 degrees is i=0 or i=360.
+        if (i > 355 || i < 5) continue;
+
+        const x1 = 300 + Math.cos(angle) * innerR;
+        const y1 = 300 + Math.sin(angle) * innerR;
+        const x2 = 300 + Math.cos(angle) * outerR;
+        const y2 = 300 + Math.sin(angle) * outerR;
+
+        ctx.beginPath();
+        ctx.lineWidth = isCardinal ? 2 : (isMajor ? 1.5 : 0.5);
+        ctx.globalAlpha = isMajor ? 0.8 : 0.4;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.beginPath();
     ctx.arc(300 + 275, 300, 12, 0, Math.PI * 2);
     ctx.fillStyle = '#22c55e'; // Green
     ctx.fill();
