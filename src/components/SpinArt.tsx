@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useApp } from '@/context/AppContext';
 
 // Configuration constants
 const CANVAS_SIZE = 600;
@@ -14,14 +15,15 @@ interface ShapeConfig {
   // Icon could be added here
 }
 
-const SHAPES: ShapeConfig[] = [
-  { id: 'circle', name: 'Kreis' },
-  { id: 'square', name: 'Quadrat' },
-  { id: 'triangle', name: 'Dreieck' },
-  { id: 'star', name: 'Stern' },
+const SHAPES = (t: (key: string) => string): ShapeConfig[] => [
+  { id: 'circle', name: t('circle') },
+  { id: 'square', name: t('square') },
+  { id: 'triangle', name: t('triangle') },
+  { id: 'star', name: t('star') },
 ];
 
 export default function SpinArt() {
+  const { t, language } = useApp();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const paperCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const exportRequestRef = useRef<number | null>(null);
@@ -557,6 +559,7 @@ export default function SpinArt() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // ... calculation logic ... 
     const prevRotation = rotationRef.current;
     const currentSpeedVal = speedsConfigRef.current[speedLevelRef.current];
     const currentSpeed = currentSpeedVal * directionRef.current;
@@ -566,42 +569,43 @@ export default function SpinArt() {
 
     // Drawing Logic
     if (isDrawingRef.current && currentMouseScreenPosRef.current) {
-      const paperCtx = paper.getContext('2d');
-      if (paperCtx) {
-        const toolSettings = toolSettingsRef.current;
-        const currentMousePos = currentMouseScreenPosRef.current;
-        const prevMousePos = prevMouseScreenPosRef.current || currentMousePos;
-        
-        const dist = Math.hypot(currentMousePos.x - prevMousePos.x, currentMousePos.y - prevMousePos.y);
-        const stepSize = Math.max(1, toolSettings.size / 4); 
-        const distSteps = Math.ceil(dist / stepSize);
-        const rotSteps = Math.max(1, Math.ceil(Math.abs(currentSpeed) / 0.02));
-        const steps = Math.max(distSteps, rotSteps);
+        // ... existing drawing logic ...
+        const paperCtx = paper.getContext('2d');
+        if (paperCtx) {
+            // ...
+            const toolSettings = toolSettingsRef.current;
+            const currentMousePos = currentMouseScreenPosRef.current;
+            const prevMousePos = prevMouseScreenPosRef.current || currentMousePos;
+            
+            const dist = Math.hypot(currentMousePos.x - prevMousePos.x, currentMousePos.y - prevMousePos.y);
+            const stepSize = Math.max(1, toolSettings.size / 4); 
+            const distSteps = Math.ceil(dist / stepSize);
+            const rotSteps = Math.max(1, Math.ceil(Math.abs(currentSpeed) / 0.02));
+            const steps = Math.max(distSteps, rotSteps);
 
-        for (let i = 1; i <= steps; i++) {
-            const t = i / steps;
-            
-            const interpRotation = prevRotation + (currentRotation - prevRotation) * t;
-            const interpMouseX = prevMousePos.x + (currentMousePos.x - prevMousePos.x) * t;
-            const interpMouseY = prevMousePos.y + (currentMousePos.y - prevMousePos.y) * t;
-            
-            const p = getPaperCoordinates(interpMouseX, interpMouseY, interpRotation);
-            
-            drawShape(
-                paperCtx,
-                p.x,
-                p.y,
-                toolSettings.size,
-                toolSettings.tipShape,
-                colorRef.current,
-                0,
-                true,
-                interpRotation,
-                toolSettings.blur,
-                toolSettings.isEraser
-            );
+            for (let i = 1; i <= steps; i++) {
+                // ...
+                const t = i / steps;
+                const interpRotation = prevRotation + (currentRotation - prevRotation) * t;
+                const interpMouseX = prevMousePos.x + (currentMousePos.x - prevMousePos.x) * t;
+                const interpMouseY = prevMousePos.y + (currentMousePos.y - prevMousePos.y) * t;
+                const p = getPaperCoordinates(interpMouseX, interpMouseY, interpRotation);
+                
+                drawShape(
+                    paperCtx,
+                    p.x,
+                    p.y,
+                    toolSettings.size,
+                    toolSettings.tipShape,
+                    colorRef.current,
+                    0,
+                    true,
+                    interpRotation,
+                    toolSettings.blur,
+                    toolSettings.isEraser
+                );
+            }
         }
-      }
     }
 
     // Update refs for next frame
@@ -632,35 +636,29 @@ export default function SpinArt() {
 
     // Draw Handle
     ctx.beginPath();
-    // Handle positioned at radius 275, angle 0 (relative to disc rotation)
-    // Center of disc is 300,300 in this context (due to translate)
-    // But we used translate(300,300) -> rotate -> translate(-300,-300)
-    // So the coordinate system origin (0,0) is at top-left of paper.
-    // Center is (300, 300).
-    // Handle is at (300 + 275, 300).
-    
-    // Draw Degree Ticks (Scale)
+    ctx.arc(300 + 275, 300, 12, 0, Math.PI * 2);
+    ctx.fillStyle = '#22c55e'; // Green
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Draw Degree Ticks
+    // ...
     ctx.save();
-    ctx.strokeStyle = '#0ea5e9'; // Light blue (sky-500)
+    ctx.strokeStyle = '#0ea5e9'; 
     for (let i = 0; i < 360; i++) {
+        // ...
         const angle = (i * Math.PI) / 180;
         const isCardinal = i % 90 === 0;
         const isMajor = i % 10 === 0;
-        
-        // Length of ticks
         const outerR = 290;
         const innerR = isCardinal ? 260 : (isMajor ? 270 : 280);
-        
-        // Skip drawing tick where handle is (approx +/- 5 degrees around 0)
-        // Handle is at 0 degrees (angle 0).
-        // 0 degrees is i=0 or i=360.
         if (i > 355 || i < 5) continue;
-
         const x1 = 300 + Math.cos(angle) * innerR;
         const y1 = 300 + Math.sin(angle) * innerR;
         const x2 = 300 + Math.cos(angle) * outerR;
         const y2 = 300 + Math.sin(angle) * outerR;
-
         ctx.beginPath();
         ctx.lineWidth = isCardinal ? 2 : (isMajor ? 1.5 : 0.5);
         ctx.globalAlpha = isMajor ? 0.8 : 0.4;
@@ -670,37 +668,25 @@ export default function SpinArt() {
     }
     ctx.restore();
 
-    ctx.beginPath();
-    ctx.arc(300 + 275, 300, 12, 0, Math.PI * 2);
-    ctx.fillStyle = '#22c55e'; // Green
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
     ctx.restore(); 
 
     // Ghost Shape
     if (activeMode === 'shape' && currentMouseScreenPosRef.current) {
+        // ... drawing ghost shape ...
         const mx = currentMouseScreenPosRef.current.x;
         const my = currentMouseScreenPosRef.current.y;
         const rect = canvas.getBoundingClientRect();
-        
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        
         const gx = (mx - rect.left) * scaleX;
         const gy = (my - rect.top) * scaleY;
-        
         if (gx >= 0 && gx <= CANVAS_SIZE && gy >= 0 && gy <= CANVAS_SIZE) {
             ctx.save();
             ctx.translate(gx, gy);
             ctx.rotate(shapeSettingsRef.current.rotation * Math.PI / 180);
-            
             ctx.beginPath();
             const sz = shapeSettingsRef.current.size;
             const filled = shapeSettingsRef.current.filled;
-            
             if (shapeSettingsRef.current.type === 'circle') ctx.arc(0, 0, sz/2, 0, Math.PI*2);
             else if (shapeSettingsRef.current.type === 'square') ctx.rect(-sz/2, -sz/2, sz, sz);
             else if (shapeSettingsRef.current.type === 'triangle') {
@@ -709,6 +695,7 @@ export default function SpinArt() {
                 ctx.lineTo(-sz/2, sz/2);
                 ctx.closePath();
             } else if (shapeSettingsRef.current.type === 'star') {
+                // ... star drawing ...
                 const spikes = 5;
                 const outerRadius = sz / 2;
                 const innerRadius = sz / 4;
@@ -730,7 +717,6 @@ export default function SpinArt() {
                 ctx.lineTo(0, -outerRadius);
                 ctx.closePath();
             }
-
             if (filled) {
                 ctx.fillStyle = shapeSettingsRef.current.color;
                 ctx.globalAlpha = 0.8;
@@ -740,7 +726,6 @@ export default function SpinArt() {
                 ctx.lineWidth = Math.max(2, sz / 20);
                 ctx.stroke();
             }
-            
             ctx.restore();
         }
     }
@@ -755,15 +740,15 @@ export default function SpinArt() {
       ctx.textBaseline = 'middle';
       
       ctx.font = 'bold 24px sans-serif';
-      ctx.fillText('Willkommen bei Spin Art!', canvas.width / 2, canvas.height / 2 - 40);
+      ctx.fillText(t('intro_title'), canvas.width / 2, canvas.height / 2 - 40);
       
       ctx.font = '16px sans-serif';
       const lines = [
-        "Wählen Sie einen Stift und drücken Sie",
-        "Pfeil nach links oder nach rechts.",
-        "Auf höchster Geschwindigkeit entstehen",
-        "aus Ihren Zeichnungen mit etwas Übung",
-        "unverwechselbare Animationen!"
+        t('intro_l1'),
+        t('intro_l2'),
+        t('intro_l3'),
+        t('intro_l4'),
+        t('intro_l5')
       ];
       
       lines.forEach((line, i) => {
@@ -772,11 +757,11 @@ export default function SpinArt() {
       
       ctx.font = 'italic 14px sans-serif';
       ctx.fillStyle = '#cccccc';
-      ctx.fillText('(Klicke zum Starten)', canvas.width / 2, canvas.height / 2 + 150);
+      ctx.fillText(t('click_to_start'), canvas.width / 2, canvas.height / 2 + 150);
     }
 
     animationFrameRef.current = requestAnimationFrame(render);
-  }, [getPaperCoordinates, activeMode, showIntro]);
+  }, [getPaperCoordinates, activeMode, showIntro, t]); // Added t to dependencies
 
   useEffect(() => {
     animationFrameRef.current = requestAnimationFrame(render);
@@ -912,7 +897,7 @@ export default function SpinArt() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white p-4 select-none">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white p-4 select-none transition-colors duration-300">
       {/* Mobile Warning Overlay */}
       {showMobileWarning && (
           <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-center p-8 text-center">
@@ -920,30 +905,62 @@ export default function SpinArt() {
                   <div className="w-16 h-16 bg-yellow-500/20 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
                   </div>
-                  <h2 className="text-2xl font-bold mb-4 text-white">Nicht für Mobilgeräte optimiert</h2>
+                  <h2 className="text-2xl font-bold mb-4 text-white">{t('mobile_warning_title')}</h2>
                   <p className="text-gray-300 mb-6">
-                      Diese App ist für die Nutzung auf Desktop-Computern mit Tastatur und Maus ausgelegt. Die Steuerung und das Layout funktionieren auf Touchscreens möglicherweise nicht wie erwartet.
+                      {t('mobile_warning_text')}
                   </p>
                   <button
                       onClick={() => setShowMobileWarning(false)}
                       className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors border border-gray-600"
                   >
-                      Trotzdem fortfahren
+                      {t('continue_anyway')}
                   </button>
               </div>
           </div>
       )}
 
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold mb-2">Spin Art</h1>
-        <p className="text-gray-300">
-          <span className="font-bold text-yellow-400 border px-2 py-0.5 rounded border-gray-600 mr-1">←</span>
-          <span className="font-bold text-yellow-400 border px-2 py-0.5 rounded border-gray-600 mr-2">→</span>
-          Pfeiltasten steuern die Rotation (Tippen: Stufe ändern, Halten: Max-Speed)
+      <div className="text-center mb-6" key={language}>
+        <p className="text-gray-600 dark:text-gray-300">
+          <span className="font-bold text-yellow-600 dark:text-yellow-400 border px-2 py-0.5 rounded border-gray-400 dark:border-gray-600 mr-1">←</span>
+          <span className="font-bold text-yellow-600 dark:text-yellow-400 border px-2 py-0.5 rounded border-gray-400 dark:border-gray-600 mr-2">→</span>
+          {t('instructions')}
           <br />
-          Halte <span className="font-bold text-blue-400 border px-2 py-0.5 rounded border-gray-600 ml-2">Shift</span> und klicke zwei Punkte, um sie mit einer Linie zu verbinden.
+          {t('shift_text').split('Shift').map((part, i, arr) => (
+             <React.Fragment key={i}>
+                {part}
+                {i < arr.length - 1 && <span className="font-bold text-blue-600 dark:text-blue-400 border px-2 py-0.5 rounded border-gray-400 dark:border-gray-600 mx-1">Shift</span>}
+             </React.Fragment>
+          ))}
           <br />
-          Drücke <span className="font-bold text-yellow-400 border px-2 py-0.5 rounded border-gray-600 ml-2">Leertaste</span> um zu Stoppen & Zurückzusetzen.
+          {t('space_text').split('Leertaste').length > 1 ? (
+             // German specific split
+             t('space_text').split('Leertaste').map((part, i, arr) => (
+                <React.Fragment key={i}>
+                   {part}
+                   {i < arr.length - 1 && <span className="font-bold text-yellow-600 dark:text-yellow-400 border px-2 py-0.5 rounded border-gray-400 dark:border-gray-600 mx-1">{t('space_instruction')}</span>}
+                </React.Fragment>
+             ))
+          ) : t('space_text').split('Space').length > 1 ? (
+             // English/Japanese split
+             t('space_text').split('Space').map((part, i, arr) => (
+                <React.Fragment key={i}>
+                   {part}
+                   {i < arr.length - 1 && <span className="font-bold text-yellow-600 dark:text-yellow-400 border px-2 py-0.5 rounded border-gray-400 dark:border-gray-600 mx-1">Space</span>}
+                </React.Fragment>
+             ))
+          ) : (
+             t('space_text')
+          )}
+          <br/>
+          <br/>
+          <a 
+            href="https://www.youtube.com/@LimbaTrip" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors border-b border-transparent hover:border-blue-500"
+          >
+            {t('inspired_by')}
+          </a>
         </p>
       </div>
 
@@ -952,41 +969,41 @@ export default function SpinArt() {
         <button 
             onClick={undo}
             disabled={historyIndex <= 0 || isExporting}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors ${historyIndex > 0 && !isExporting ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors ${historyIndex > 0 && !isExporting ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-black dark:text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'}`}
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-            Rückgängig
+            {t('undo')}
         </button>
         <button 
             onClick={redo}
             disabled={historyIndex >= history.length - 1 || isExporting}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors ${historyIndex < history.length - 1 && !isExporting ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors ${historyIndex < history.length - 1 && !isExporting ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-black dark:text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'}`}
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
-            Wiederholen
+            {t('redo')}
         </button>
       </div>
 
       <div className="flex flex-col lg:flex-row items-start justify-center gap-8">
         {/* Left Sidebar - Shapes */}
-        <div className="flex flex-col gap-6 bg-gray-700 p-6 rounded-xl shadow-xl min-w-[200px]">
-            <span className="font-medium text-lg">Formen</span>
+        <div className="flex flex-col gap-6 bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl min-w-[200px]">
+            <span className="font-medium text-lg">{t('shapes')}</span>
             
             {/* Shape Color Picker */}
             <div className="flex flex-col gap-2">
-                <label className="text-sm text-gray-300">Farbe</label>
+                <label className="text-sm text-gray-600 dark:text-gray-300">{t('color')}</label>
                 <input
                     type="color"
                     value={shapeColor}
                     onChange={(e) => setShapeColor(e.target.value)}
-                    className="w-full h-10 rounded cursor-pointer border-none bg-gray-600 p-1"
+                    className="w-full h-10 rounded cursor-pointer border-none bg-gray-100 dark:bg-gray-600 p-1"
                 />
             </div>
 
             {/* Shape Size Slider */}
             <div className="flex flex-col gap-2">
-                <label className="text-sm text-gray-300 flex justify-between">
-                    <span>Größe</span>
+                <label className="text-sm text-gray-600 dark:text-gray-300 flex justify-between">
+                    <span>{t('size')}</span>
                     <span>{shapeSize}px</span>
                 </label>
                 <input
@@ -995,14 +1012,14 @@ export default function SpinArt() {
                     max="200"
                     value={shapeSize}
                     onChange={(e) => setShapeSize(parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
                 />
             </div>
 
             {/* Shape Rotation Slider */}
             <div className="flex flex-col gap-2">
-                <label className="text-sm text-gray-300 flex justify-between">
-                    <span>Rotation</span>
+                <label className="text-sm text-gray-600 dark:text-gray-300 flex justify-between">
+                    <span>{t('rotation')}</span>
                     <span>{shapeRotation}°</span>
                 </label>
                 <input
@@ -1011,23 +1028,23 @@ export default function SpinArt() {
                     max="360"
                     value={shapeRotation}
                     onChange={(e) => setShapeRotation(parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500"
                 />
             </div>
 
             {/* Fill Toggle */}
             <div className="flex items-center justify-between">
-                <label className="text-sm text-gray-300">Füllung</label>
+                <label className="text-sm text-gray-600 dark:text-gray-300">{t('fill')}</label>
                 <button
                     onClick={() => setIsShapeFilled(!isShapeFilled)}
-                    className={`w-12 h-6 rounded-full transition-colors relative ${isShapeFilled ? 'bg-purple-600' : 'bg-gray-500'}`}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${isShapeFilled ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-500'}`}
                 >
                     <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${isShapeFilled ? 'left-7' : 'left-1'}`} />
                 </button>
             </div>
 
-            <div className="flex flex-col gap-2 pt-2 border-t border-gray-600">
-                {SHAPES.map(shape => (
+            <div className="flex flex-col gap-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                {SHAPES(t).map(shape => (
                     <button
                         key={shape.id}
                         onClick={() => {
@@ -1038,7 +1055,7 @@ export default function SpinArt() {
                             flex items-center justify-between px-4 py-3 rounded-lg transition-all
                             ${activeMode === 'shape' && selectedShape === shape.id 
                             ? 'bg-purple-600 text-white ring-2 ring-purple-400 scale-105' 
-                            : 'bg-gray-600 hover:bg-gray-500 text-gray-200'}
+                            : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200'}
                         `}
                     >
                         <span>{shape.name}</span>
@@ -1055,7 +1072,7 @@ export default function SpinArt() {
 
         {/* Main Content Area */}
         <div className="flex flex-col gap-4 items-center">
-          <div className="relative shadow-2xl rounded-full overflow-hidden border-4 border-gray-700 bg-gray-900 cursor-crosshair">
+          <div className="relative shadow-2xl rounded-full overflow-hidden border-4 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 cursor-crosshair">
             <canvas
               ref={canvasRef}
               width={CANVAS_SIZE}
@@ -1070,20 +1087,20 @@ export default function SpinArt() {
           </div>
 
           {/* Speed Controls */}
-          <div className="w-full max-w-[600px] bg-gray-700 p-4 rounded-lg flex justify-between gap-4 shadow-lg">
+          <div className="w-full max-w-[600px] bg-white dark:bg-gray-700 p-4 rounded-lg flex justify-between gap-4 shadow-lg">
              {[0, 1, 2].map((level) => (
                <div key={level} className="flex flex-col flex-1 gap-1">
                  <div className="flex gap-1">
                     <button 
                     onClick={() => setManualSpeed(level + 1, -1)}
-                    className={`text-xs font-medium px-1 rounded transition-colors ${speedLevel === level + 1 && direction === -1 ? 'bg-yellow-500/20 text-yellow-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-600'}`}
+                    className={`text-xs font-medium px-1 rounded transition-colors ${speedLevel === level + 1 && direction === -1 ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600'}`}
                     >
                     ←
                     </button>
-                    <span className="text-xs font-medium text-gray-300">Stufe {level + 1}</span>
+                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300">{t('level')} {level + 1}</span>
                     <button 
                     onClick={() => setManualSpeed(level + 1, 1)}
-                    className={`text-xs font-medium px-1 rounded transition-colors ${speedLevel === level + 1 && direction === 1 ? 'bg-yellow-500/20 text-yellow-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-gray-600'}`}
+                    className={`text-xs font-medium px-1 rounded transition-colors ${speedLevel === level + 1 && direction === 1 ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600'}`}
                     >
                     →
                     </button>
@@ -1095,43 +1112,43 @@ export default function SpinArt() {
                     step="0.01"
                     value={configSpeeds[level]}
                     onChange={(e) => updateConfigSpeed(level, parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-yellow-500"
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-yellow-500"
                  />
-                 <span className="text-xs text-gray-400 text-right">{configSpeeds[level].toFixed(2)}</span>
+                 <span className="text-xs text-gray-500 dark:text-gray-400 text-right">{configSpeeds[level].toFixed(2)}</span>
                </div>
              ))}
              
              {/* Stop Button */}
-             <div className="flex items-center justify-center px-2 border-l border-gray-600">
+             <div className="flex items-center justify-center px-2 border-l border-gray-200 dark:border-gray-600">
                 <button 
                    onClick={() => setManualSpeed(0)}
-                   className={`px-3 py-1 rounded border transition-colors ${speedLevel === 0 ? 'bg-red-500/20 border-red-500 text-red-400' : 'border-gray-500 text-gray-400 hover:bg-gray-600'}`}
+                   className={`px-3 py-1 rounded border transition-colors ${speedLevel === 0 ? 'bg-red-500/20 border-red-500 text-red-600 dark:text-red-400' : 'border-gray-300 dark:border-gray-500 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600'}`}
                 >
-                   Stop
+                   {t('stop')}
                 </button>
              </div>
           </div>
         </div>
 
         {/* Right Sidebar Tools */}
-        <div className="flex flex-col gap-6 bg-gray-700 p-6 rounded-xl shadow-xl min-w-[200px]">
-          <span className="font-medium text-lg">Stifte</span>
+        <div className="flex flex-col gap-6 bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl min-w-[200px]">
+          <span className="font-medium text-lg">{t('pens')}</span>
           
           {/* Color Picker */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-300">Farbe</label>
+            <label className="text-sm text-gray-600 dark:text-gray-300">{t('color')}</label>
             <input
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                className="w-full h-10 rounded cursor-pointer border-none bg-gray-600 p-1"
+                className="w-full h-10 rounded cursor-pointer border-none bg-gray-100 dark:bg-gray-600 p-1"
             />
           </div>
 
           {/* Size Slider */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-300 flex justify-between">
-                <span>Größe</span>
+            <label className="text-sm text-gray-600 dark:text-gray-300 flex justify-between">
+                <span>{t('size')}</span>
                 <span>{toolSize}px</span>
             </label>
             <input
@@ -1143,15 +1160,15 @@ export default function SpinArt() {
                     setToolSize(parseInt(e.target.value));
                     setActiveMode('draw');
                 }}
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
 
           {/* Tip Shape Selection */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-300">Spitze</label>
+            <label className="text-sm text-gray-600 dark:text-gray-300">{t('tip')}</label>
             <div className="grid grid-cols-4 gap-2">
-                {SHAPES.map(shape => (
+                {SHAPES(t).map(shape => (
                     <button
                         key={shape.id}
                         onClick={() => {
@@ -1162,7 +1179,7 @@ export default function SpinArt() {
                             flex items-center justify-center p-2 rounded-lg transition-all
                             ${toolTipShape === shape.id 
                             ? 'bg-blue-600 text-white ring-2 ring-blue-400 scale-105' 
-                            : 'bg-gray-600 hover:bg-gray-500 text-gray-200'}
+                            : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200'}
                         `}
                         title={shape.name}
                     >
@@ -1179,8 +1196,8 @@ export default function SpinArt() {
 
           {/* Blur Slider */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-300 flex justify-between">
-                <span>Blur</span>
+            <label className="text-sm text-gray-600 dark:text-gray-300 flex justify-between">
+                <span>{t('blur')}</span>
                 <span>{toolBlur}px</span>
             </label>
             <input
@@ -1192,26 +1209,26 @@ export default function SpinArt() {
                     setToolBlur(parseInt(e.target.value));
                     setActiveMode('draw');
                 }}
-                className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
 
           {/* Eraser Checkbox */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-600">
-            <label className="text-sm text-gray-300">Radierer</label>
+          <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-600">
+            <label className="text-sm text-gray-600 dark:text-gray-300">{t('eraser')}</label>
             <button
                 onClick={() => {
                     setIsEraser(!isEraser);
                     setActiveMode('draw');
                 }}
-                className={`w-12 h-6 rounded-full transition-colors relative ${isEraser ? 'bg-blue-600' : 'bg-gray-500'}`}
+                className={`w-12 h-6 rounded-full transition-colors relative ${isEraser ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-500'}`}
             >
                 <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${isEraser ? 'left-7' : 'left-1'}`} />
             </button>
           </div>
 
           {/* Actions */}
-          <div className="pt-4 border-t border-gray-600">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
             <button 
               onClick={() => {
                 const pc = paperCanvasRef.current;
@@ -1231,34 +1248,34 @@ export default function SpinArt() {
               className="w-full px-4 py-3 bg-red-500 hover:bg-red-600 rounded-lg text-white font-bold transition-colors flex items-center justify-center gap-2 mb-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-              Papier leeren
+              {t('clear_paper')}
             </button>
 
             <button 
               onClick={handleExportVideo}
               disabled={isExporting || !isTimeRequirementMet || drawCount < 15}
-              title={isMounted ? ((!isTimeRequirementMet || drawCount < 15) ? `Export wird freigeschaltet nach 2 Min. Nutzung und 15 Zeichnungen (Aktuell: ${Math.floor((performance.now()/1000)/60)}m / ${drawCount})` : "Video exportieren") : "Video exportieren"}
+              title={isMounted ? ((!isTimeRequirementMet || drawCount < 15) ? `${t('export_locked')} (Aktuell: ${Math.floor((performance.now()/1000)/60)}m / ${drawCount})` : t('export_video')) : t('export_video')}
               className={`w-full px-4 py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${
                 isExporting || !isTimeRequirementMet || drawCount < 15 
-                  ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                  ? 'bg-gray-300 dark:bg-gray-500 text-gray-500 dark:text-gray-300 cursor-not-allowed' 
                   : 'bg-blue-500 hover:bg-blue-600 text-white'
               }`}
             >
               {isExporting ? (
-                <span>Export läuft...</span>
+                <span>{t('export_running')}</span>
               ) : (isMounted && (!isTimeRequirementMet || drawCount < 15)) ? (
                  <span className="text-sm flex flex-col leading-tight items-center">
-                    <span>Export gesperrt</span>
+                    <span>{t('export_locked')}</span>
                     <span className="text-[10px] font-normal opacity-80">
-                        {!isTimeRequirementMet ? "Warte 2 Min." : ""}
+                        {!isTimeRequirementMet ? `${t('wait')} 2 Min.` : ""}
                         {!isTimeRequirementMet && drawCount < 15 ? " & " : ""}
-                        {drawCount < 15 ? `Zeichne noch ${15 - drawCount}x` : ""}
+                        {drawCount < 15 ? `${t('draw_more')} ${15 - drawCount}x` : ""}
                     </span>
                  </span>
               ) : (
                 <>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Export als Video
+                  {t('export_video')}
                 </>
               )}
             </button>
