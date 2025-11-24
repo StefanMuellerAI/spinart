@@ -33,12 +33,14 @@ export default function SpinArt() {
   const [showMobileWarning, setShowMobileWarning] = useState(false);
   
   const [isExporting, setIsExporting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   // Export restrictions state
   const [drawCount, setDrawCount] = useState(0);
   const [isTimeRequirementMet, setIsTimeRequirementMet] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const timer = setTimeout(() => {
       setIsTimeRequirementMet(true);
     }, 120000); // 2 minutes
@@ -127,6 +129,7 @@ export default function SpinArt() {
   
   // Drawing state refs
   const isDrawingRef = useRef(false);
+  const isDraggingDiscRef = useRef(false);
   const currentMouseScreenPosRef = useRef<{x: number, y: number} | null>(null);
   const prevMouseScreenPosRef = useRef<{x: number, y: number} | null>(null);
   const prevRotationRef = useRef(0);
@@ -627,6 +630,21 @@ export default function SpinArt() {
       ctx.stroke();
     }
 
+    // Draw Handle
+    ctx.beginPath();
+    // Handle positioned at radius 275, angle 0 (relative to disc rotation)
+    // Center of disc is 300,300 in this context (due to translate)
+    // But we used translate(300,300) -> rotate -> translate(-300,-300)
+    // So the coordinate system origin (0,0) is at top-left of paper.
+    // Center is (300, 300).
+    // Handle is at (300 + 275, 300).
+    ctx.arc(300 + 275, 300, 12, 0, Math.PI * 2);
+    ctx.fillStyle = '#22c55e'; // Green
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
     ctx.restore(); 
 
     // Ghost Shape
@@ -741,6 +759,19 @@ export default function SpinArt() {
       return;
     }
 
+    // Check if clicking handle
+    const posPaper = getPaperCoordinates(e.clientX, e.clientY, rotationRef.current);
+    // Center of paper is CANVAS_SIZE/2 (300). Handle is at 300+275, 300 in paper coords.
+    const handleX = CANVAS_SIZE / 2 + 275;
+    const handleY = CANVAS_SIZE / 2;
+    const distToHandle = Math.hypot(posPaper.x - handleX, posPaper.y - handleY);
+    
+    if (distToHandle < 30) { // 12 radius + padding
+        isDraggingDiscRef.current = true;
+        setManualSpeed(0); // Stop auto spin
+        return;
+    }
+
     if (activeMode === 'shape') {
         const pos = getPaperCoordinates(e.clientX, e.clientY, rotationRef.current);
         const paperCtx = paperCanvasRef.current?.getContext('2d');
@@ -816,9 +847,21 @@ export default function SpinArt() {
 
   const handleMouseMove = (e: React.MouseEvent) => {
     currentMouseScreenPosRef.current = { x: e.clientX, y: e.clientY };
+
+    if (isDraggingDiscRef.current) {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const rect = canvas.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const angle = Math.atan2(e.clientY - cy, e.clientX - cx);
+            rotationRef.current = angle;
+        }
+    }
   };
 
   const handleMouseUp = () => {
+    isDraggingDiscRef.current = false;
     if (isDrawingRef.current) {
         addToHistory();
         setDrawCount(prev => prev + 1);
@@ -1161,7 +1204,7 @@ export default function SpinArt() {
             <button 
               onClick={handleExportVideo}
               disabled={isExporting || !isTimeRequirementMet || drawCount < 15}
-              title={(!isTimeRequirementMet || drawCount < 15) ? `Export wird freigeschaltet nach 2 Min. Nutzung und 15 Zeichnungen (Aktuell: ${Math.floor((performance.now()/1000)/60)}m / ${drawCount})` : "Video exportieren"}
+              title={isMounted ? ((!isTimeRequirementMet || drawCount < 15) ? `Export wird freigeschaltet nach 2 Min. Nutzung und 15 Zeichnungen (Aktuell: ${Math.floor((performance.now()/1000)/60)}m / ${drawCount})` : "Video exportieren") : "Video exportieren"}
               className={`w-full px-4 py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${
                 isExporting || !isTimeRequirementMet || drawCount < 15 
                   ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
@@ -1170,7 +1213,7 @@ export default function SpinArt() {
             >
               {isExporting ? (
                 <span>Export läuft...</span>
-              ) : (!isTimeRequirementMet || drawCount < 15) ? (
+              ) : (isMounted && (!isTimeRequirementMet || drawCount < 15)) ? (
                  <span className="text-sm flex flex-col leading-tight items-center">
                     <span>Export gesperrt</span>
                     <span className="text-[10px] font-normal opacity-80">
