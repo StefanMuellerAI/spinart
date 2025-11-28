@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Play, Pause, ArrowLeft, ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface PlayerControlsProps {
-  t: (key: string) => string;
   isPlaying: boolean;
   playbackSpeed: number;
   direction: number;
@@ -16,10 +17,10 @@ interface PlayerControlsProps {
   onSetPlaybackSpeed: (speed: number) => void;
   onSetDirection: (direction: number) => void;
   compact?: boolean;
+  minimal?: boolean;
 }
 
 export function PlayerControls({
-  t,
   isPlaying,
   playbackSpeed,
   direction,
@@ -27,7 +28,35 @@ export function PlayerControls({
   onSetPlaybackSpeed,
   onSetDirection,
   compact = false,
+  minimal = false,
 }: PlayerControlsProps) {
+  const t = useTranslations();
+
+  // Minimal mode for collapsed sidebar - just play button
+  if (minimal) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            onClick={onTogglePlay}
+            size="icon"
+            variant={isPlaying ? 'destructive' : 'default'}
+            className={!isPlaying ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+          >
+            {isPlaying ? (
+              <Pause className="size-5" />
+            ) : (
+              <Play className="size-5" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="left">
+          {isPlaying ? t('stop') : t('play')}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
   // Compact mode for tablet layout
   if (compact) {
     return (

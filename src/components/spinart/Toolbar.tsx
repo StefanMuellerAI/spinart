@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Undo2, Redo2, Trash2, Video, Paintbrush, Square } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Undo2, Redo2, Trash2, Video, Paintbrush, Square, PanelRightClose, PanelRightOpen, ChevronUp, ChevronDown } from 'lucide-react';
 import { ToolTab, TipShape, StampShape } from '@/types/spinart';
 import { PenState, ShapeState } from '@/hooks/useSpinArtDrawing';
 import { PenControls } from './PenControls';
@@ -14,8 +15,6 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { Separator } from '@/components/ui/separator';
 
 interface ToolbarProps {
-  t: (key: string) => string;
-  
   // Tab state
   activeTab: ToolTab;
   setActiveTab: (tab: ToolTab) => void;
@@ -64,11 +63,12 @@ interface ToolbarProps {
   onSetDirection: (direction: number) => void;
   
   // Layout
-  isTablet?: boolean;
+  useBottomToolbar?: boolean;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 export function Toolbar({
-  t,
   activeTab,
   setActiveTab,
   canUndo,
@@ -104,14 +104,35 @@ export function Toolbar({
   onTogglePlay,
   onSetPlaybackSpeed,
   onSetDirection,
-  isTablet = false,
+  useBottomToolbar = false,
+  isCollapsed,
+  onToggleCollapse,
 }: ToolbarProps) {
+  const t = useTranslations();
   const canExport = isTimeRequirementMet && drawCount >= 15;
 
-  // Tablet layout: bottom drawer style
-  if (isTablet) {
+  // Bottom toolbar layout (for tablets in portrait mode)
+  if (useBottomToolbar) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 flex flex-col bg-card shadow-2xl border-t border-border z-50 max-h-[50vh] overflow-y-auto">
+      <div className={`fixed bottom-0 left-0 right-0 flex flex-col bg-card shadow-2xl border-t border-border z-50 transition-transform duration-300 ${isCollapsed ? 'translate-y-[calc(100%-56px)]' : ''}`}>
+        {/* Collapse toggle bar */}
+        <button
+          onClick={onToggleCollapse}
+          className="flex items-center justify-center gap-2 py-2 bg-muted/50 hover:bg-muted transition-colors border-b border-border"
+        >
+          {isCollapsed ? (
+            <>
+              <ChevronUp className="size-5" />
+              <span className="text-sm font-medium">{t('show_toolbar')}</span>
+            </>
+          ) : (
+            <>
+              <ChevronDown className="size-5" />
+              <span className="text-sm font-medium">{t('hide_toolbar')}</span>
+            </>
+          )}
+        </button>
+
         {/* Compact horizontal toolbar for tablet */}
         <div className="flex items-center justify-between gap-2 p-3">
           {/* Left: Action buttons */}
@@ -175,7 +196,6 @@ export function Toolbar({
           {/* Right: Player controls */}
           <div className="flex items-center gap-2">
             <PlayerControls
-              t={t}
               isPlaying={isPlaying}
               playbackSpeed={playbackSpeed}
               direction={direction}
@@ -190,11 +210,10 @@ export function Toolbar({
         <Separator />
         
         {/* Tool-specific controls */}
-        <div className="p-3">
+        <div className="p-3 max-h-[40vh] overflow-y-auto">
           {activeTab === 'pen' ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <PenControls
-                t={t}
                 penState={penState}
                 setPenColor={setPenColor}
                 setPenSize={setPenSize}
@@ -210,7 +229,6 @@ export function Toolbar({
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <ShapeControls
-                t={t}
                 shapeState={shapeState}
                 setShapeColor={setShapeColor}
                 setShapeSizeX={setShapeSizeX}
@@ -226,9 +244,110 @@ export function Toolbar({
     );
   }
 
-  // Desktop layout: right sidebar
+  // Desktop/Landscape layout: right sidebar (z-30 so footer z-40 stays on top)
+  // Collapsed state shows only a thin bar with toggle button
+  if (isCollapsed) {
+    return (
+      <div className="fixed top-14 right-0 bottom-0 z-30 flex flex-col items-center bg-card shadow-2xl w-12 border-l border-border">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggleCollapse}
+              className="mt-2"
+            >
+              <PanelRightOpen className="size-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left">{t('show_toolbar')}</TooltipContent>
+        </Tooltip>
+        
+        <Separator className="my-2 w-8" />
+        
+        {/* Minimal controls when collapsed */}
+        <div className="flex flex-col gap-2 items-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={onUndo}
+                disabled={!canUndo || isExporting}
+              >
+                <Undo2 className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">{t('undo')}</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={onRedo}
+                disabled={!canRedo || isExporting}
+              >
+                <Redo2 className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">{t('redo')}</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="destructive"
+                size="icon-sm"
+                onClick={onEraseAll}
+                disabled={isExporting}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">{t('erase_all')}</TooltipContent>
+          </Tooltip>
+        </div>
+        
+        {/* Play button at bottom */}
+        <div className="mt-auto mb-16">
+          <PlayerControls
+            isPlaying={isPlaying}
+            playbackSpeed={playbackSpeed}
+            direction={direction}
+            onTogglePlay={onTogglePlay}
+            onSetPlaybackSpeed={onSetPlaybackSpeed}
+            onSetDirection={onSetDirection}
+            minimal={true}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Full sidebar
   return (
-    <div className="fixed top-14 right-0 bottom-12 flex flex-col gap-3 bg-card p-4 shadow-2xl w-72 border-l border-border overflow-y-auto">
+    <div className="fixed top-14 right-0 bottom-0 z-30 flex flex-col gap-3 bg-card p-4 pb-14 shadow-2xl w-72 border-l border-border overflow-y-auto">
+      
+      {/* Collapse toggle */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-muted-foreground">{t('tools')}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={onToggleCollapse}
+            >
+              <PanelRightClose className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left">{t('hide_toolbar')}</TooltipContent>
+        </Tooltip>
+      </div>
+
+      <Separator />
       
       {/* Top Actions - Horizontal */}
       <div className="flex items-center justify-center gap-2 pb-3">
@@ -313,7 +432,6 @@ export function Toolbar({
 
         <TabsContent value="pen" className="flex flex-col gap-3 pt-2">
           <PenControls
-            t={t}
             penState={penState}
             setPenColor={setPenColor}
             setPenSize={setPenSize}
@@ -329,7 +447,6 @@ export function Toolbar({
 
         <TabsContent value="shape" className="flex flex-col gap-3 pt-2">
           <ShapeControls
-            t={t}
             shapeState={shapeState}
             setShapeColor={setShapeColor}
             setShapeSizeX={setShapeSizeX}
@@ -345,7 +462,6 @@ export function Toolbar({
 
       {/* Player Controls */}
       <PlayerControls
-        t={t}
         isPlaying={isPlaying}
         playbackSpeed={playbackSpeed}
         direction={direction}

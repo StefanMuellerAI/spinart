@@ -1,15 +1,17 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MobileWarningProps {
-  t: (key: string) => string;
   onClose: () => void;
 }
 
-export function MobileWarning({ t, onClose }: MobileWarningProps) {
+export function MobileWarning({ onClose }: MobileWarningProps) {
+  const t = useTranslations();
+
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center">
       <div className="bg-card p-8 rounded-2xl shadow-2xl max-w-md border border-border">

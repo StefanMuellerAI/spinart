@@ -5,12 +5,14 @@ interface UseCanvasSizeReturn {
   displaySize: number;
   isTablet: boolean;
   isPortrait: boolean;
+  useBottomToolbar: boolean; // Only true for tablets in portrait mode
 }
 
 export function useCanvasSize(): UseCanvasSizeReturn {
   const [displaySize, setDisplaySize] = useState(CANVAS_SIZE);
   const [isTablet, setIsTablet] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
+  const [useBottomToolbar, setUseBottomToolbar] = useState(false);
 
   useEffect(() => {
     const calculateSize = () => {
@@ -18,26 +20,31 @@ export function useCanvasSize(): UseCanvasSizeReturn {
       const height = window.innerHeight;
       
       // Detect tablet (iPad: 768-1366px typically)
+      // Also check for touch capability
       const tablet = width >= 768 && width <= 1366;
       const portrait = height > width;
       
+      // Only use bottom toolbar for tablets in portrait mode
+      // In landscape, use sidebar like desktop for better space usage
+      const bottomToolbar = tablet && portrait;
+      
       setIsTablet(tablet);
       setIsPortrait(portrait);
+      setUseBottomToolbar(bottomToolbar);
       
       // Layout dimensions
       const headerHeight = 56;
       const footerHeight = 40;
       const padding = 32;
       
-      // For tablets, toolbar is at bottom or smaller
-      // For desktop, toolbar is on the right (288px)
-      const toolbarWidth = tablet ? 0 : 288;
+      // Toolbar takes space on right for desktop/landscape, bottom for portrait tablets
+      const toolbarWidth = bottomToolbar ? 0 : 288;
       
       const availableWidth = width - toolbarWidth - padding;
       const availableHeight = height - headerHeight - footerHeight - padding;
       
       // For tablets in portrait, reserve space for bottom toolbar
-      const adjustedHeight = tablet && portrait 
+      const adjustedHeight = bottomToolbar 
         ? availableHeight - 200 // Space for bottom toolbar
         : availableHeight;
       
@@ -60,5 +67,5 @@ export function useCanvasSize(): UseCanvasSizeReturn {
     };
   }, []);
 
-  return { displaySize, isTablet, isPortrait };
+  return { displaySize, isTablet, isPortrait, useBottomToolbar };
 }

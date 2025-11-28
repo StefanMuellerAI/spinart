@@ -27,13 +27,23 @@ interface AnimationRefs {
   pressureSensitivityEnabledRef: MutableRefObject<boolean>;
 }
 
+export interface IntroTexts {
+  intro_title: string;
+  intro_l1: string;
+  intro_l2: string;
+  intro_l3: string;
+  intro_l4: string;
+  intro_l5: string;
+  click_to_start: string;
+}
+
 interface UseSpinArtAnimationProps {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
   paperCanvasRef: MutableRefObject<HTMLCanvasElement | null>;
   refs: AnimationRefs;
   activeTab: ToolTab;
   showIntro: boolean;
-  t: (key: string) => string;
+  introTexts: IntroTexts;
 }
 
 interface UseSpinArtAnimationReturn {
@@ -47,7 +57,7 @@ export function useSpinArtAnimation({
   refs,
   activeTab,
   showIntro,
-  t,
+  introTexts,
 }: UseSpinArtAnimationProps): UseSpinArtAnimationReturn {
   const rotationRef = useRef(0);
   const animationFrameRef = useRef<number>(0);
@@ -108,10 +118,10 @@ export function useSpinArtAnimation({
         const smearSteps = isPhysicsMode && smearLength > 2 ? Math.ceil(smearLength / 2) : 0;
 
         for (let i = 1; i <= steps; i++) {
-          const t = i / steps;
-          const interpRotation = prevRotation + (currentRotation - prevRotation) * t;
-          const interpMouseX = prevMousePos.x + (currentMousePos.x - prevMousePos.x) * t;
-          const interpMouseY = prevMousePos.y + (currentMousePos.y - prevMousePos.y) * t;
+          const ti = i / steps;
+          const interpRotation = prevRotation + (currentRotation - prevRotation) * ti;
+          const interpMouseX = prevMousePos.x + (currentMousePos.x - prevMousePos.x) * ti;
+          const interpMouseY = prevMousePos.y + (currentMousePos.y - prevMousePos.y) * ti;
           const p = getPaperCoordinatesForCanvas(interpMouseX, interpMouseY, interpRotation);
           
           // Draw main stroke with pressure-adjusted size
@@ -226,11 +236,11 @@ export function useSpinArtAnimation({
 
     // Intro Overlay
     if (showIntro) {
-      drawIntroOverlay(ctx, canvas.width, canvas.height, t);
+      drawIntroOverlay(ctx, canvas.width, canvas.height, introTexts);
     }
 
     animationFrameRef.current = requestAnimationFrame(render);
-  }, [canvasRef, paperCanvasRef, refs, activeTab, showIntro, t, getPaperCoordinatesForCanvas]);
+  }, [canvasRef, paperCanvasRef, refs, activeTab, showIntro, introTexts, getPaperCoordinatesForCanvas]);
 
   useEffect(() => {
     animationFrameRef.current = requestAnimationFrame(render);

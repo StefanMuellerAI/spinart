@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Pencil, Eraser, Atom, Minus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Pencil, Eraser, Atom, Minus, Info } from 'lucide-react';
 import { TipShape, getPenTips } from '@/types/spinart';
 import { PenState } from '@/hooks/useSpinArtDrawing';
 
@@ -16,9 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface PenControlsProps {
-  t: (key: string) => string;
   penState: PenState;
   setPenColor: (color: string) => void;
   setPenSize: (size: number) => void;
@@ -32,7 +33,6 @@ interface PenControlsProps {
 }
 
 export function PenControls({
-  t,
   penState,
   setPenColor,
   setPenSize,
@@ -44,6 +44,7 @@ export function PenControls({
   toggleLineTool,
   togglePressureSensitivity,
 }: PenControlsProps) {
+  const t = useTranslations();
   const penTips = getPenTips(t);
 
   return (
@@ -123,14 +124,24 @@ export function PenControls({
 
       <Separator />
 
-      {/* Toggles with icons */}
+      {/* Toggles with icons and tooltips */}
       <div className="flex flex-col gap-3">
         {/* Pressure Sensitivity - Apple Pencil */}
         <div className="flex items-center justify-between">
-          <Label htmlFor="pressure-switch" className="text-xs cursor-pointer flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
             <Pencil className="size-3.5" />
-            {t('pressure_sensitivity')}
-          </Label>
+            <Label htmlFor="pressure-switch" className="text-xs cursor-pointer">
+              {t('pressure_sensitivity')}
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="size-3 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[200px]">
+                <p className="text-xs">{t('tooltip_pressure')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <Switch
             id="pressure-switch"
             checked={penState.pressureSensitivityEnabled}
@@ -140,10 +151,20 @@ export function PenControls({
         
         {/* Eraser */}
         <div className="flex items-center justify-between">
-          <Label htmlFor="eraser-switch" className="text-xs cursor-pointer flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
             <Eraser className="size-3.5" />
-            {t('eraser')}
-          </Label>
+            <Label htmlFor="eraser-switch" className="text-xs cursor-pointer">
+              {t('eraser')}
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="size-3 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[200px]">
+                <p className="text-xs">{t('tooltip_eraser')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <Switch
             id="eraser-switch"
             checked={penState.isEraser}
@@ -153,10 +174,20 @@ export function PenControls({
         
         {/* Physics Pen */}
         <div className="flex items-center justify-between">
-          <Label htmlFor="physics-switch" className="text-xs cursor-pointer flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
             <Atom className="size-3.5" />
-            {t('physics_pen')}
-          </Label>
+            <Label htmlFor="physics-switch" className="text-xs cursor-pointer">
+              {t('physics_pen')}
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="size-3 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[200px]">
+                <p className="text-xs">{t('tooltip_physics')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <Switch
             id="physics-switch"
             checked={penState.physicsEnabled}
@@ -166,10 +197,20 @@ export function PenControls({
         
         {/* Line Tool */}
         <div className="flex items-center justify-between">
-          <Label htmlFor="line-switch" className="text-xs cursor-pointer flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
             <Minus className="size-3.5" />
-            {t('line_tool')}
-          </Label>
+            <Label htmlFor="line-switch" className="text-xs cursor-pointer">
+              {t('line_tool')}
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="size-3 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[200px]">
+                <p className="text-xs">{t('tooltip_line')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <Switch
             id="line-switch"
             checked={penState.lineToolEnabled}

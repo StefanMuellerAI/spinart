@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useApp } from '@/context/AppContext';
+import { useTranslations } from 'next-intl';
 import { CANVAS_SIZE, ToolTab } from '@/types/spinart';
 import { 
   useSpinArtHistory, 
@@ -18,7 +18,7 @@ import { Toolbar } from './Toolbar';
 import { SpinArtCanvas } from './SpinArtCanvas';
 
 export default function SpinArt() {
-  const { t } = useApp();
+  const t = useTranslations();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const paperCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,6 +38,9 @@ export default function SpinArt() {
   // Tab state
   const [activeTab, setActiveTab] = useState<ToolTab>('pen');
 
+  // Toolbar collapse state
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+
   // Refs for playback state (used in animation loop)
   const isPlayingRef = useRef(false);
   const playbackSpeedRef = useRef(1.0);
@@ -54,7 +57,7 @@ export default function SpinArt() {
   }, [direction]);
 
   // Custom hooks
-  const { displaySize, isTablet } = useCanvasSize();
+  const { displaySize, useBottomToolbar } = useCanvasSize();
   
   const {
     penState,
@@ -101,13 +104,24 @@ export default function SpinArt() {
     directionRef,
   };
 
+  // Intro text for animation overlay
+  const introTexts = {
+    intro_title: t('intro_title'),
+    intro_l1: t('intro_l1'),
+    intro_l2: t('intro_l2'),
+    intro_l3: t('intro_l3'),
+    intro_l4: t('intro_l4'),
+    intro_l5: t('intro_l5'),
+    click_to_start: t('click_to_start'),
+  };
+
   const { rotationRef, getPaperCoordinatesForCanvas } = useSpinArtAnimation({
     canvasRef,
     paperCanvasRef,
     refs: animationRefs,
     activeTab,
     showIntro,
-    t,
+    introTexts,
   });
 
   useKeyboardControls({
@@ -225,9 +239,9 @@ export default function SpinArt() {
           const steps = Math.ceil(dist / stepSize);
 
           for (let i = 0; i <= steps; i++) {
-            const t = i / steps;
-            const px = startPos.x + dx * t;
-            const py = startPos.y + dy * t;
+            const ti = i / steps;
+            const px = startPos.x + dx * ti;
+            const py = startPos.y + dy * ti;
             
             drawPenTip(
               paperCtx,
@@ -308,12 +322,26 @@ export default function SpinArt() {
     setIsPlaying(!isPlaying);
   }, [isPlaying]);
 
+  const toggleToolbarCollapse = useCallback(() => {
+    setIsToolbarCollapsed(!isToolbarCollapsed);
+  }, [isToolbarCollapsed]);
+
+  // Calculate canvas container position based on toolbar state
+  const getCanvasContainerClass = () => {
+    if (useBottomToolbar) {
+      // Bottom toolbar - canvas goes full width, leave space at bottom
+      return 'fixed top-14 left-0 right-0 bottom-10 flex items-center justify-center';
+    }
+    // Sidebar - leave space on right, unless collapsed
+    const rightOffset = isToolbarCollapsed ? 'right-12' : 'right-72';
+    return `fixed top-14 left-0 bottom-10 flex items-center justify-center ${rightOffset}`;
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white select-none transition-colors duration-300">
       {/* Mobile Warning Overlay */}
       {showMobileWarning && (
         <MobileWarning 
-          t={t} 
           onClose={() => setShowMobileWarning(false)} 
         />
       )}
@@ -321,7 +349,7 @@ export default function SpinArt() {
       {/* Main Content - Canvas takes full remaining space */}
       <div 
         ref={containerRef}
-        className={`fixed top-14 left-0 bottom-10 flex items-center justify-center ${isTablet ? 'right-0' : 'right-72'}`}
+        className={getCanvasContainerClass()}
       >
         <SpinArtCanvas
           ref={canvasRef}
@@ -337,7 +365,6 @@ export default function SpinArt() {
 
       {/* Right Fixed Toolbar - responsive for tablet */}
       <Toolbar
-        t={t}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         canUndo={canUndo}
@@ -373,7 +400,9 @@ export default function SpinArt() {
         onTogglePlay={togglePlay}
         onSetPlaybackSpeed={setPlaybackSpeed}
         onSetDirection={setDirection}
-        isTablet={isTablet}
+        useBottomToolbar={useBottomToolbar}
+        isCollapsed={isToolbarCollapsed}
+        onToggleCollapse={toggleToolbarCollapse}
       />
     </div>
   );

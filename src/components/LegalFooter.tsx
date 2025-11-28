@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { IMPRESSUM_TEXT, DATENSCHUTZ_TEXT } from '@/data/legalText';
 
 export default function LegalFooter() {
+  const t = useTranslations();
   const [modalContent, setModalContent] = useState<{ title: string, text: string } | null>(null);
 
   const openModal = (title: string, text: string) => {
@@ -16,7 +18,7 @@ export default function LegalFooter() {
 
   return (
     <>
-      <footer className="w-full py-3 bg-gray-900 text-gray-400 text-sm text-center border-t border-gray-800">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 py-3 bg-gray-900 text-gray-400 text-sm text-center border-t border-gray-800">
         <div className="flex justify-center items-center gap-6">
           <a
             href="https://www.youtube.com/@LimbaTrip"
@@ -24,20 +26,20 @@ export default function LegalFooter() {
             rel="noopener noreferrer"
             className="hover:text-blue-400 transition-colors"
           >
-            Inspiriert von LimbaTrip
+            {t('inspired_by')}
           </a>
           <span className="text-gray-600">•</span>
           <button 
-            onClick={() => openModal('Impressum', IMPRESSUM_TEXT)}
+            onClick={() => openModal(t('footer_imprint'), IMPRESSUM_TEXT)}
             className="hover:text-white transition-colors"
           >
-            Impressum
+            {t('footer_imprint')}
           </button>
           <button 
-            onClick={() => openModal('Datenschutz', DATENSCHUTZ_TEXT)}
+            onClick={() => openModal(t('footer_privacy'), DATENSCHUTZ_TEXT)}
             className="hover:text-white transition-colors"
           >
-            Datenschutz
+            {t('footer_privacy')}
           </button>
         </div>
       </footer>
@@ -70,7 +72,7 @@ export default function LegalFooter() {
                 onClick={closeModal}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-white font-medium"
               >
-                Schließen
+                {t('continue_anyway')}
               </button>
             </div>
           </div>
@@ -79,4 +81,3 @@ export default function LegalFooter() {
     </>
   );
 }
-

@@ -1,10 +1,16 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { useRouter, usePathname } from 'next/navigation';
 import { useApp } from '../context/AppContext';
+import { locales, localeNames, type Locale } from '@/i18n/config';
 
 export default function Header() {
-  const { language, setLanguage, theme, setTheme, t } = useApp();
+  const t = useTranslations();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { locale, theme, setTheme } = useApp();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -19,6 +25,19 @@ export default function Header() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const switchLanguage = (newLocale: Locale) => {
+    // Get the path without the locale prefix
+    const pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
+    router.push(`/${newLocale}${pathWithoutLocale}`);
+    setIsSettingsOpen(false);
+  };
+
+  const localeFlags: Record<Locale, string> = {
+    de: '🇩🇪',
+    en: '🇬🇧',
+    ja: '🇯🇵',
+  };
 
   return (
     <header className="w-full bg-gray-200 dark:bg-gray-900 text-gray-900 dark:text-white p-2 flex justify-between items-center shadow-md transition-colors duration-300 sticky top-0 z-50">
@@ -67,27 +86,16 @@ export default function Header() {
             <div className="p-3">
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Sprache / Language</div>
               <div className="flex flex-col gap-1">
-                <button 
-                  onClick={() => { setLanguage('de'); setIsSettingsOpen(false); }}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${language === 'de' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
-                >
-                  <span className="text-base">🇩🇪</span>
-                  Deutsch
-                </button>
-                <button 
-                  onClick={() => { setLanguage('en'); setIsSettingsOpen(false); }}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${language === 'en' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
-                >
-                  <span className="text-base">🇬🇧</span>
-                  English
-                </button>
-                <button 
-                  onClick={() => { setLanguage('ja'); setIsSettingsOpen(false); }}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${language === 'ja' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
-                >
-                  <span className="text-base">🇯🇵</span>
-                  日本語
-                </button>
+                {locales.map((loc) => (
+                  <button 
+                    key={loc}
+                    onClick={() => switchLanguage(loc)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${locale === loc ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                  >
+                    <span className="text-base">{localeFlags[loc]}</span>
+                    {localeNames[loc]}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

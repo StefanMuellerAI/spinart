@@ -295,6 +295,16 @@ export function drawLineStartIndicator(
   ctx.stroke();
 }
 
+export interface IntroTexts {
+  intro_title: string;
+  intro_l1: string;
+  intro_l2: string;
+  intro_l3: string;
+  intro_l4: string;
+  intro_l5: string;
+  click_to_start: string;
+}
+
 /**
  * Draws the intro overlay
  */
@@ -302,7 +312,7 @@ export function drawIntroOverlay(
   ctx: CanvasRenderingContext2D,
   canvasWidth: number,
   canvasHeight: number,
-  t: (key: string) => string
+  texts: IntroTexts
 ): void {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -312,15 +322,15 @@ export function drawIntroOverlay(
   ctx.textBaseline = 'middle';
   
   ctx.font = 'bold 24px sans-serif';
-  ctx.fillText(t('intro_title'), canvasWidth / 2, canvasHeight / 2 - 40);
+  ctx.fillText(texts.intro_title, canvasWidth / 2, canvasHeight / 2 - 40);
   
   ctx.font = '16px sans-serif';
   const lines = [
-    t('intro_l1'),
-    t('intro_l2'),
-    t('intro_l3'),
-    t('intro_l4'),
-    t('intro_l5')
+    texts.intro_l1,
+    texts.intro_l2,
+    texts.intro_l3,
+    texts.intro_l4,
+    texts.intro_l5
   ];
   
   lines.forEach((line, i) => {
@@ -329,7 +339,7 @@ export function drawIntroOverlay(
   
   ctx.font = 'italic 14px sans-serif';
   ctx.fillStyle = '#cccccc';
-  ctx.fillText(t('click_to_start'), canvasWidth / 2, canvasHeight / 2 + 150);
+  ctx.fillText(texts.click_to_start, canvasWidth / 2, canvasHeight / 2 + 150);
 }
 
 /**

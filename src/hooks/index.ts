@@ -6,4 +6,5 @@ export { useKeyboardControls } from './useKeyboardControls';
 export { useCanvasSize } from './useCanvasSize';
 
 export type { PenState, ShapeState, DrawingRefs } from './useSpinArtDrawing';
+export type { IntroTexts } from './useSpinArtAnimation';
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { MoveHorizontal, MoveVertical, RotateCcw, Square } from 'lucide-react';
 import { StampShape, getStampShapes } from '@/types/spinart';
 import { ShapeState } from '@/hooks/useSpinArtDrawing';
@@ -18,7 +19,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 
 interface ShapeControlsProps {
-  t: (key: string) => string;
   shapeState: ShapeState;
   setShapeColor: (color: string) => void;
   setShapeSizeX: (size: number) => void;
@@ -29,7 +29,6 @@ interface ShapeControlsProps {
 }
 
 export function ShapeControls({
-  t,
   shapeState,
   setShapeColor,
   setShapeSizeX,
@@ -38,6 +37,7 @@ export function ShapeControls({
   setShapeType,
   setStrokeOnly,
 }: ShapeControlsProps) {
+  const t = useTranslations();
   const stampShapes = getStampShapes(t);
 
   return (
