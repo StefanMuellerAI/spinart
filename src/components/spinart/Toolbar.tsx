@@ -251,6 +251,10 @@ export function Toolbar({
                 setShapeAngle={setShapeAngle}
                 setShapeType={setShapeType}
                 setStrokeOnly={setStrokeOnly}
+                symmetryEnabled={penState.symmetryEnabled}
+                symmetryCount={penState.symmetryCount}
+                toggleSymmetry={toggleSymmetry}
+                setSymmetryCount={setSymmetryCount}
               />
             </div>
           )}
@@ -474,6 +478,10 @@ export function Toolbar({
             setShapeAngle={setShapeAngle}
             setShapeType={setShapeType}
             setStrokeOnly={setStrokeOnly}
+            symmetryEnabled={penState.symmetryEnabled}
+            symmetryCount={penState.symmetryCount}
+            toggleSymmetry={toggleSymmetry}
+            setSymmetryCount={setSymmetryCount}
           />
         </TabsContent>
       </Tabs>

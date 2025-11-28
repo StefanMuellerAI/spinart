@@ -14,7 +14,10 @@ import {
   Highlighter,
   Sparkles,
   Palette,
-  Snowflake
+  Snowflake,
+  CircleDot,
+  Droplets,
+  Eye
 } from 'lucide-react';
 import { TipShape } from '@/types/spinart';
 import { PenState } from '@/hooks/useSpinArtDrawing';
@@ -180,7 +183,10 @@ export function PenControls({
       {/* Pen Size */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <Label className="text-xs text-muted-foreground">{t('pen_size')}</Label>
+          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <CircleDot className="size-3.5" />
+            {t('pen_size')}
+          </Label>
           <span className="text-xs font-medium">{penState.size}px</span>
         </div>
         <Slider
@@ -195,7 +201,10 @@ export function PenControls({
       {/* Blur */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <Label className="text-xs text-muted-foreground">{t('blur')}</Label>
+          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Droplets className="size-3.5" />
+            {t('blur')}
+          </Label>
           <span className="text-xs font-medium">{penState.blur}px</span>
         </div>
         <Slider
@@ -210,7 +219,10 @@ export function PenControls({
       {/* Opacity */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <Label className="text-xs text-muted-foreground">{t('opacity')}</Label>
+          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Eye className="size-3.5" />
+            {t('opacity')}
+          </Label>
           <span className="text-xs font-medium">{penState.opacity}%</span>
         </div>
         <Slider
@@ -343,7 +355,7 @@ export function PenControls({
 
         {/* Symmetry Count Selection (shown only when symmetry is enabled) */}
         {penState.symmetryEnabled && (
-          <div className="flex flex-col gap-2 ml-5">
+          <div className="flex flex-col gap-2">
             <Label className="text-xs text-muted-foreground">{t('symmetry_count')}</Label>
             <div className="grid grid-cols-4 gap-1.5">
               {symmetryCounts.map((count) => (

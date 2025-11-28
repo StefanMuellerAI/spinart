@@ -208,18 +208,44 @@ export default function SpinArt() {
       const pos = getPaperCoordinatesForCanvas(e.clientX, e.clientY, rotationRef.current);
       const paperCtx = paperCanvasRef.current?.getContext('2d');
       if (paperCtx) {
-        drawStampShape(
-          paperCtx,
-          pos.x,
-          pos.y,
-          drawingRefs.shapeSettingsRef.current.sizeX,
-          drawingRefs.shapeSettingsRef.current.sizeY,
-          drawingRefs.shapeSettingsRef.current.type,
-          drawingRefs.shapeSettingsRef.current.color,
-          drawingRefs.shapeSettingsRef.current.angle,
-          drawingRefs.shapeSettingsRef.current.strokeOnly,
-          rotationRef.current
-        );
+        const shapeSettings = drawingRefs.shapeSettingsRef.current;
+        const symmetryEnabled = drawingRefs.symmetryEnabledRef.current;
+        const symmetryCount = symmetryEnabled ? drawingRefs.symmetryCountRef.current : 1;
+        const angleStep = (2 * Math.PI) / symmetryCount;
+        const centerX = CANVAS_SIZE / 2;
+        const centerY = CANVAS_SIZE / 2;
+
+        for (let copy = 0; copy < symmetryCount; copy++) {
+          let drawX = pos.x;
+          let drawY = pos.y;
+          let drawAngle = shapeSettings.angle;
+
+          if (copy > 0) {
+            // Rotate point around center
+            const angle = copy * angleStep;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const dx = pos.x - centerX;
+            const dy = pos.y - centerY;
+            drawX = centerX + dx * cos - dy * sin;
+            drawY = centerY + dx * sin + dy * cos;
+            // Also rotate the shape's angle
+            drawAngle = shapeSettings.angle + (angle * 180 / Math.PI);
+          }
+
+          drawStampShape(
+            paperCtx,
+            drawX,
+            drawY,
+            shapeSettings.sizeX,
+            shapeSettings.sizeY,
+            shapeSettings.type,
+            shapeSettings.color,
+            drawAngle,
+            shapeSettings.strokeOnly,
+            rotationRef.current
+          );
+        }
         addToHistory();
         setDrawCount(prev => prev + 1);
       }
