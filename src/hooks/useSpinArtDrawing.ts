@@ -15,6 +15,9 @@ export interface PenState {
   gradientEnabled: boolean;
   gradientStartColor: string;
   gradientEndColor: string;
+  // Symmetry
+  symmetryEnabled: boolean;
+  symmetryCount: number;
 }
 
 export interface ShapeState {
@@ -45,6 +48,9 @@ export interface DrawingRefs {
   gradientStartColorRef: MutableRefObject<string>;
   gradientEndColorRef: MutableRefObject<string>;
   gradientProgressRef: MutableRefObject<number>;
+  // Symmetry refs
+  symmetryEnabledRef: MutableRefObject<boolean>;
+  symmetryCountRef: MutableRefObject<number>;
 }
 
 interface UseSpinArtDrawingReturn {
@@ -61,6 +67,8 @@ interface UseSpinArtDrawingReturn {
   // Gradient setters
   setGradientStartColor: (color: string) => void;
   setGradientEndColor: (color: string) => void;
+  // Symmetry setter
+  setSymmetryCount: (count: number) => void;
   
   // Shape State
   shapeState: ShapeState;
@@ -80,6 +88,7 @@ interface UseSpinArtDrawingReturn {
   toggleLineTool: () => void;
   togglePressureSensitivity: () => void;
   toggleGradient: () => void;
+  toggleSymmetry: () => void;
 }
 
 export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
@@ -98,6 +107,10 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
   const [gradientEnabled, setGradientEnabled] = useState(false);
   const [gradientStartColor, setGradientStartColor] = useState('#FF0000');
   const [gradientEndColor, setGradientEndColor] = useState('#0000FF');
+
+  // Symmetry State
+  const [symmetryEnabled, setSymmetryEnabled] = useState(false);
+  const [symmetryCount, setSymmetryCount] = useState(4); // 2, 4, 6, or 8
 
   // Shape Tool State
   const [shapeColor, setShapeColor] = useState('#FF0000');
@@ -124,6 +137,10 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
   const gradientStartColorRef = useRef(gradientStartColor);
   const gradientEndColorRef = useRef(gradientEndColor);
   const gradientProgressRef = useRef(0);
+
+  // Symmetry refs
+  const symmetryEnabledRef = useRef(symmetryEnabled);
+  const symmetryCountRef = useRef(symmetryCount);
 
   // Sync state to refs for use in animation loop
   const penColorRef = useRef(penColor);
@@ -180,6 +197,15 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     gradientEndColorRef.current = gradientEndColor;
   }, [gradientEndColor]);
 
+  // Symmetry refs sync
+  useEffect(() => {
+    symmetryEnabledRef.current = symmetryEnabled;
+  }, [symmetryEnabled]);
+
+  useEffect(() => {
+    symmetryCountRef.current = symmetryCount;
+  }, [symmetryCount]);
+
   useEffect(() => {
     shapeSettingsRef.current = { 
       color: shapeColor, 
@@ -230,6 +256,10 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     setGradientEnabled(!gradientEnabled);
   };
 
+  const toggleSymmetry = () => {
+    setSymmetryEnabled(!symmetryEnabled);
+  };
+
   const penState: PenState = {
     color: penColor,
     size: penSize,
@@ -243,6 +273,8 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     gradientEnabled,
     gradientStartColor,
     gradientEndColor,
+    symmetryEnabled,
+    symmetryCount,
   };
 
   const shapeState: ShapeState = {
@@ -271,6 +303,8 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     gradientStartColorRef,
     gradientEndColorRef,
     gradientProgressRef,
+    symmetryEnabledRef,
+    symmetryCountRef,
   };
 
   return {
@@ -285,6 +319,7 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     setLineToolEnabled,
     setGradientStartColor,
     setGradientEndColor,
+    setSymmetryCount,
     
     shapeState,
     setShapeColor,
@@ -301,5 +336,6 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     toggleLineTool,
     togglePressureSensitivity,
     toggleGradient,
+    toggleSymmetry,
   };
 }

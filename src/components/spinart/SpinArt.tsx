@@ -73,6 +73,8 @@ export default function SpinArt() {
     toggleGradient,
     setGradientStartColor,
     setGradientEndColor,
+    toggleSymmetry,
+    setSymmetryCount,
     shapeState,
     setShapeColor,
     setShapeSizeX,
@@ -398,6 +400,8 @@ export default function SpinArt() {
         toggleGradient={toggleGradient}
         setGradientStartColor={setGradientStartColor}
         setGradientEndColor={setGradientEndColor}
+        toggleSymmetry={toggleSymmetry}
+        setSymmetryCount={setSymmetryCount}
         shapeState={shapeState}
         setShapeColor={setShapeColor}
         setShapeSizeX={setShapeSizeX}

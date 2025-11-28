@@ -79,6 +79,9 @@
   "gradient": "グラデーション",
   "gradient_start": "開始",
   "gradient_end": "終了",
-  "tooltip_gradient": "描画中に色が開始色から終了色に自動的に変化します。"
+  "tooltip_gradient": "描画中に色が開始色から終了色に自動的に変化します。",
+  "symmetry": "対称",
+  "symmetry_count": "分割数",
+  "tooltip_symmetry": "描画を中心から放射状にミラーリングします。曼荼羅に最適。"
 }
 

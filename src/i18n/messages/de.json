@@ -79,6 +79,9 @@
   "gradient": "Farbverlauf",
   "gradient_start": "Start",
   "gradient_end": "Ende",
-  "tooltip_gradient": "Farbe wechselt während des Zeichnens automatisch von Start- zu Endfarbe."
+  "tooltip_gradient": "Farbe wechselt während des Zeichnens automatisch von Start- zu Endfarbe.",
+  "symmetry": "Symmetrie",
+  "symmetry_count": "Anzahl",
+  "tooltip_symmetry": "Spiegelt die Zeichnung radial um die Mitte. Perfekt für Mandalas."
 }
 

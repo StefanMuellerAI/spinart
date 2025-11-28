@@ -30,6 +30,9 @@ interface AnimationRefs {
   gradientStartColorRef: MutableRefObject<string>;
   gradientEndColorRef: MutableRefObject<string>;
   gradientProgressRef: MutableRefObject<number>;
+  // Symmetry support
+  symmetryEnabledRef: MutableRefObject<boolean>;
+  symmetryCountRef: MutableRefObject<number>;
 }
 
 export interface IntroTexts {
@@ -80,6 +83,32 @@ function interpolateColor(color1: string, color2: string, factor: number): strin
   
   // Convert back to hex
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+/**
+ * Rotates a point around a center point by a given angle
+ * @param x X coordinate of the point
+ * @param y Y coordinate of the point
+ * @param centerX X coordinate of the center
+ * @param centerY Y coordinate of the center
+ * @param angle Rotation angle in radians
+ * @returns Rotated point coordinates
+ */
+function rotatePoint(
+  x: number,
+  y: number,
+  centerX: number,
+  centerY: number,
+  angle: number
+): { x: number; y: number } {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const dx = x - centerX;
+  const dy = y - centerY;
+  return {
+    x: centerX + dx * cos - dy * sin,
+    y: centerY + dx * sin + dy * cos,
+  };
 }
 
 export function useSpinArtAnimation({
@@ -160,6 +189,13 @@ export function useSpinArtAnimation({
         const smearLength = isPhysicsMode ? normalizedSpeed * 80 : 0;
         const smearSteps = isPhysicsMode && smearLength > 2 ? Math.ceil(smearLength / 2) : 0;
 
+        // Symmetry settings
+        const symmetryEnabled = refs.symmetryEnabledRef.current;
+        const symmetryCount = symmetryEnabled ? refs.symmetryCountRef.current : 1;
+        const angleStep = (2 * Math.PI) / symmetryCount;
+        const centerX = CANVAS_SIZE / 2;
+        const centerY = CANVAS_SIZE / 2;
+
         for (let i = 1; i <= steps; i++) {
           const ti = i / steps;
           const interpRotation = prevRotation + (currentRotation - prevRotation) * ti;
@@ -167,60 +203,65 @@ export function useSpinArtAnimation({
           const interpMouseY = prevMousePos.y + (currentMousePos.y - prevMousePos.y) * ti;
           const p = getPaperCoordinatesForCanvas(interpMouseX, interpMouseY, interpRotation);
           
-          // Draw main stroke with pressure-adjusted size and gradient color
-          drawPenTip(
-            paperCtx,
-            p.x,
-            p.y,
-            actualSize,
-            settings.tip,
-            currentColor,
-            interpRotation,
-            settings.blur,
-            settings.isEraser,
-            settings.opacity
-          );
-
-          // Physics mode: Centrifugal force - paint flies OUTWARD from center
-          if (isPhysicsMode && smearSteps > 0 && !settings.isEraser && refs.isPlayingRef.current) {
-            const centerX = CANVAS_SIZE / 2;
-            const centerY = CANVAS_SIZE / 2;
-            const dx = p.x - centerX;
-            const dy = p.y - centerY;
-            const currentRadius = Math.sqrt(dx * dx + dy * dy);
+          // Draw for each symmetry copy
+          for (let copy = 0; copy < symmetryCount; copy++) {
+            const rotatedPoint = copy === 0 
+              ? p 
+              : rotatePoint(p.x, p.y, centerX, centerY, copy * angleStep);
             
-            if (currentRadius < 10) continue;
-            
-            const outwardDirX = dx / currentRadius;
-            const outwardDirY = dy / currentRadius;
+            // Draw main stroke with pressure-adjusted size and gradient color
+            drawPenTip(
+              paperCtx,
+              rotatedPoint.x,
+              rotatedPoint.y,
+              actualSize,
+              settings.tip,
+              currentColor,
+              interpRotation + copy * angleStep,
+              settings.blur,
+              settings.isEraser,
+              settings.opacity
+            );
 
-            for (let s = 1; s <= smearSteps; s++) {
-              const smearT = s / smearSteps;
-              const outwardOffset = smearT * smearLength;
-              const smearX = p.x + outwardDirX * outwardOffset;
-              const smearY = p.y + outwardDirY * outwardOffset;
+            // Physics mode: Centrifugal force - paint flies OUTWARD from center
+            if (isPhysicsMode && smearSteps > 0 && !settings.isEraser && refs.isPlayingRef.current) {
+              const dx = rotatedPoint.x - centerX;
+              const dy = rotatedPoint.y - centerY;
+              const currentRadius = Math.sqrt(dx * dx + dy * dy);
               
-              const smearRadius = Math.sqrt((smearX - centerX) ** 2 + (smearY - centerY) ** 2);
-              if (smearRadius > DISC_RADIUS - 5) continue;
+              if (currentRadius < 10) continue;
               
-              const smearOpacity = 0.7 * (1 - smearT * 0.8);
-              const smearSize = actualSize * (1 - smearT * 0.6);
+              const outwardDirX = dx / currentRadius;
+              const outwardDirY = dy / currentRadius;
 
-              paperCtx.save();
-              paperCtx.globalAlpha = smearOpacity * (settings.opacity / 100);
-              drawPenTip(
-                paperCtx,
-                smearX,
-                smearY,
-                smearSize,
-                settings.tip,
-                currentColor,
-                interpRotation,
-                settings.blur + smearT * 15,
-                false,
-                100
-              );
-              paperCtx.restore();
+              for (let s = 1; s <= smearSteps; s++) {
+                const smearT = s / smearSteps;
+                const outwardOffset = smearT * smearLength;
+                const smearX = rotatedPoint.x + outwardDirX * outwardOffset;
+                const smearY = rotatedPoint.y + outwardDirY * outwardOffset;
+                
+                const smearRadius = Math.sqrt((smearX - centerX) ** 2 + (smearY - centerY) ** 2);
+                if (smearRadius > DISC_RADIUS - 5) continue;
+                
+                const smearOpacity = 0.7 * (1 - smearT * 0.8);
+                const smearSize = actualSize * (1 - smearT * 0.6);
+
+                paperCtx.save();
+                paperCtx.globalAlpha = smearOpacity * (settings.opacity / 100);
+                drawPenTip(
+                  paperCtx,
+                  smearX,
+                  smearY,
+                  smearSize,
+                  settings.tip,
+                  currentColor,
+                  interpRotation + copy * angleStep,
+                  settings.blur + smearT * 15,
+                  false,
+                  100
+                );
+                paperCtx.restore();
+              }
             }
           }
         }

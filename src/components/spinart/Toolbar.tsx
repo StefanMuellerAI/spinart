@@ -47,6 +47,8 @@ interface ToolbarProps {
   toggleGradient: () => void;
   setGradientStartColor: (color: string) => void;
   setGradientEndColor: (color: string) => void;
+  toggleSymmetry: () => void;
+  setSymmetryCount: (count: number) => void;
   
   // Shape state
   shapeState: ShapeState;
@@ -97,6 +99,8 @@ export function Toolbar({
   toggleGradient,
   setGradientStartColor,
   setGradientEndColor,
+  toggleSymmetry,
+  setSymmetryCount,
   shapeState,
   setShapeColor,
   setShapeSizeX,
@@ -233,6 +237,8 @@ export function Toolbar({
                 toggleGradient={toggleGradient}
                 setGradientStartColor={setGradientStartColor}
                 setGradientEndColor={setGradientEndColor}
+                toggleSymmetry={toggleSymmetry}
+                setSymmetryCount={setSymmetryCount}
               />
             </div>
           ) : (
@@ -454,6 +460,8 @@ export function Toolbar({
             toggleGradient={toggleGradient}
             setGradientStartColor={setGradientStartColor}
             setGradientEndColor={setGradientEndColor}
+            toggleSymmetry={toggleSymmetry}
+            setSymmetryCount={setSymmetryCount}
           />
         </TabsContent>
 

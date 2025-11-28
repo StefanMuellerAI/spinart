@@ -79,6 +79,9 @@
   "gradient": "Gradient",
   "gradient_start": "Start",
   "gradient_end": "End",
-  "tooltip_gradient": "Color automatically changes from start to end color while drawing."
+  "tooltip_gradient": "Color automatically changes from start to end color while drawing.",
+  "symmetry": "Symmetry",
+  "symmetry_count": "Count",
+  "tooltip_symmetry": "Mirrors drawing radially around the center. Perfect for mandalas."
 }
 

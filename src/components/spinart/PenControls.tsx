@@ -13,7 +13,8 @@ import {
   Feather,
   Highlighter,
   Sparkles,
-  Palette
+  Palette,
+  Snowflake
 } from 'lucide-react';
 import { TipShape } from '@/types/spinart';
 import { PenState } from '@/hooks/useSpinArtDrawing';
@@ -39,6 +40,8 @@ interface PenControlsProps {
   toggleGradient: () => void;
   setGradientStartColor: (color: string) => void;
   setGradientEndColor: (color: string) => void;
+  toggleSymmetry: () => void;
+  setSymmetryCount: (count: number) => void;
 }
 
 // Tip configuration with icons
@@ -49,6 +52,9 @@ const tipConfigs: { id: TipShape; icon: React.ReactNode; labelKey: string }[] = 
   { id: 'marker', icon: <Highlighter className="size-4" />, labelKey: 'marker' },
   { id: 'spray', icon: <Sparkles className="size-4" />, labelKey: 'spray' },
 ];
+
+// Symmetry count options
+const symmetryCounts = [2, 4, 6, 8];
 
 export function PenControls({
   penState,
@@ -64,6 +70,8 @@ export function PenControls({
   toggleGradient,
   setGradientStartColor,
   setGradientEndColor,
+  toggleSymmetry,
+  setSymmetryCount,
 }: PenControlsProps) {
   const t = useTranslations();
 
@@ -309,6 +317,53 @@ export function PenControls({
             onCheckedChange={toggleLineTool}
           />
         </div>
+        
+        {/* Symmetry Toggle */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Snowflake className="size-3.5" />
+            <Label htmlFor="symmetry-switch" className="text-xs cursor-pointer">
+              {t('symmetry')}
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="size-3 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[200px]">
+                <p className="text-xs">{t('tooltip_symmetry')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Switch
+            id="symmetry-switch"
+            checked={penState.symmetryEnabled}
+            onCheckedChange={toggleSymmetry}
+          />
+        </div>
+
+        {/* Symmetry Count Selection (shown only when symmetry is enabled) */}
+        {penState.symmetryEnabled && (
+          <div className="flex flex-col gap-2 ml-5">
+            <Label className="text-xs text-muted-foreground">{t('symmetry_count')}</Label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {symmetryCounts.map((count) => (
+                <button
+                  key={count}
+                  onClick={() => setSymmetryCount(count)}
+                  className={cn(
+                    "flex items-center justify-center p-2 rounded-md border text-xs font-medium transition-all",
+                    "hover:bg-accent hover:border-accent-foreground/20",
+                    penState.symmetryCount === count
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-input"
+                  )}
+                >
+                  {count}x
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
