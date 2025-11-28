@@ -18,8 +18,8 @@ export default function LegalFooter() {
 
   return (
     <>
-      <footer className="fixed bottom-0 left-0 right-0 z-40 py-3 bg-gray-900 text-gray-400 text-sm text-center border-t border-gray-800">
-        <div className="flex justify-center items-center gap-6">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 py-3 bg-gray-900 text-gray-400 text-sm border-t border-gray-800">
+        <div className="flex justify-start items-center gap-6 px-4">
           <a
             href="https://www.youtube.com/@LimbaTrip"
             target="_blank"

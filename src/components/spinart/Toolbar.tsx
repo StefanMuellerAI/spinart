@@ -44,6 +44,9 @@ interface ToolbarProps {
   togglePhysics: () => void;
   toggleLineTool: () => void;
   togglePressureSensitivity: () => void;
+  toggleGradient: () => void;
+  setGradientStartColor: (color: string) => void;
+  setGradientEndColor: (color: string) => void;
   
   // Shape state
   shapeState: ShapeState;
@@ -91,6 +94,9 @@ export function Toolbar({
   togglePhysics,
   toggleLineTool,
   togglePressureSensitivity,
+  toggleGradient,
+  setGradientStartColor,
+  setGradientEndColor,
   shapeState,
   setShapeColor,
   setShapeSizeX,
@@ -224,6 +230,9 @@ export function Toolbar({
                 togglePhysics={togglePhysics}
                 toggleLineTool={toggleLineTool}
                 togglePressureSensitivity={togglePressureSensitivity}
+                toggleGradient={toggleGradient}
+                setGradientStartColor={setGradientStartColor}
+                setGradientEndColor={setGradientEndColor}
               />
             </div>
           ) : (
@@ -442,6 +451,9 @@ export function Toolbar({
             togglePhysics={togglePhysics}
             toggleLineTool={toggleLineTool}
             togglePressureSensitivity={togglePressureSensitivity}
+            toggleGradient={toggleGradient}
+            setGradientStartColor={setGradientStartColor}
+            setGradientEndColor={setGradientEndColor}
           />
         </TabsContent>
 

@@ -25,6 +25,11 @@ interface AnimationRefs {
   // Apple Pencil / Stylus pressure support
   currentPressureRef: MutableRefObject<number>;
   pressureSensitivityEnabledRef: MutableRefObject<boolean>;
+  // Gradient support
+  gradientEnabledRef: MutableRefObject<boolean>;
+  gradientStartColorRef: MutableRefObject<string>;
+  gradientEndColorRef: MutableRefObject<string>;
+  gradientProgressRef: MutableRefObject<number>;
 }
 
 export interface IntroTexts {
@@ -49,6 +54,32 @@ interface UseSpinArtAnimationProps {
 interface UseSpinArtAnimationReturn {
   rotationRef: MutableRefObject<number>;
   getPaperCoordinatesForCanvas: (screenX: number, screenY: number, currentRotation: number) => Point;
+}
+
+/**
+ * Interpolates between two hex colors
+ * @param color1 Start color (hex, e.g. "#FF0000")
+ * @param color2 End color (hex, e.g. "#0000FF")
+ * @param factor Interpolation factor (0-1)
+ * @returns Interpolated color as hex string
+ */
+function interpolateColor(color1: string, color2: string, factor: number): string {
+  // Parse hex colors to RGB
+  const r1 = parseInt(color1.slice(1, 3), 16);
+  const g1 = parseInt(color1.slice(3, 5), 16);
+  const b1 = parseInt(color1.slice(5, 7), 16);
+  
+  const r2 = parseInt(color2.slice(1, 3), 16);
+  const g2 = parseInt(color2.slice(3, 5), 16);
+  const b2 = parseInt(color2.slice(5, 7), 16);
+  
+  // Interpolate
+  const r = Math.round(r1 + (r2 - r1) * factor);
+  const g = Math.round(g1 + (g2 - g1) * factor);
+  const b = Math.round(b1 + (b2 - b1) * factor);
+  
+  // Convert back to hex
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
 export function useSpinArtAnimation({
@@ -105,6 +136,18 @@ export function useSpinArtAnimation({
           ? settings.size * (0.3 + pressure * 0.7)
           : settings.size;
         
+        // Determine current color (gradient or solid)
+        let currentColor = refs.penColorRef.current;
+        if (refs.gradientEnabledRef.current && !settings.isEraser) {
+          currentColor = interpolateColor(
+            refs.gradientStartColorRef.current,
+            refs.gradientEndColorRef.current,
+            refs.gradientProgressRef.current
+          );
+          // Increase gradient progress (0.005 per frame = ~3 seconds for full gradient)
+          refs.gradientProgressRef.current = Math.min(1, refs.gradientProgressRef.current + 0.005);
+        }
+        
         const dist = Math.hypot(currentMousePos.x - prevMousePos.x, currentMousePos.y - prevMousePos.y);
         const stepSize = Math.max(1, actualSize / 4);
         const distSteps = Math.ceil(dist / stepSize);
@@ -124,14 +167,14 @@ export function useSpinArtAnimation({
           const interpMouseY = prevMousePos.y + (currentMousePos.y - prevMousePos.y) * ti;
           const p = getPaperCoordinatesForCanvas(interpMouseX, interpMouseY, interpRotation);
           
-          // Draw main stroke with pressure-adjusted size
+          // Draw main stroke with pressure-adjusted size and gradient color
           drawPenTip(
             paperCtx,
             p.x,
             p.y,
             actualSize,
             settings.tip,
-            refs.penColorRef.current,
+            currentColor,
             interpRotation,
             settings.blur,
             settings.isEraser,
@@ -171,7 +214,7 @@ export function useSpinArtAnimation({
                 smearY,
                 smearSize,
                 settings.tip,
-                refs.penColorRef.current,
+                currentColor,
                 interpRotation,
                 settings.blur + smearT * 15,
                 false,

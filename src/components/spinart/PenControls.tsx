@@ -12,7 +12,8 @@ import {
   GripHorizontal,
   Feather,
   Highlighter,
-  Sparkles
+  Sparkles,
+  Palette
 } from 'lucide-react';
 import { TipShape } from '@/types/spinart';
 import { PenState } from '@/hooks/useSpinArtDrawing';
@@ -35,6 +36,9 @@ interface PenControlsProps {
   togglePhysics: () => void;
   toggleLineTool: () => void;
   togglePressureSensitivity: () => void;
+  toggleGradient: () => void;
+  setGradientStartColor: (color: string) => void;
+  setGradientEndColor: (color: string) => void;
 }
 
 // Tip configuration with icons
@@ -57,20 +61,84 @@ export function PenControls({
   togglePhysics,
   toggleLineTool,
   togglePressureSensitivity,
+  toggleGradient,
+  setGradientStartColor,
+  setGradientEndColor,
 }: PenControlsProps) {
   const t = useTranslations();
 
   return (
     <>
-      {/* Pen Color */}
-      <div className="flex flex-col gap-2">
-        <Label className="text-xs text-muted-foreground">{t('color')}</Label>
-        <input
-          type="color"
-          value={penState.color}
-          onChange={(e) => setPenColor(e.target.value)}
-          className="w-full h-9 rounded-md cursor-pointer border border-input bg-transparent"
-        />
+      {/* Color Section */}
+      <div className="flex flex-col gap-3">
+        {/* Gradient Toggle */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Palette className="size-3.5" />
+            <Label htmlFor="gradient-switch" className="text-xs cursor-pointer">
+              {t('gradient')}
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="size-3 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[200px]">
+                <p className="text-xs">{t('tooltip_gradient')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Switch
+            id="gradient-switch"
+            checked={penState.gradientEnabled}
+            onCheckedChange={toggleGradient}
+          />
+        </div>
+
+        {/* Conditional: Solid Color or Gradient Colors */}
+        {penState.gradientEnabled ? (
+          <>
+            {/* Gradient Preview */}
+            <div 
+              className="h-6 rounded-md border border-input"
+              style={{ 
+                background: `linear-gradient(to right, ${penState.gradientStartColor}, ${penState.gradientEndColor})` 
+              }} 
+            />
+            
+            {/* Two Color Pickers */}
+            <div className="flex gap-2">
+              <div className="flex-1 flex flex-col gap-1">
+                <Label className="text-xs text-muted-foreground">{t('gradient_start')}</Label>
+                <input
+                  type="color"
+                  value={penState.gradientStartColor}
+                  onChange={(e) => setGradientStartColor(e.target.value)}
+                  className="w-full h-8 rounded-md cursor-pointer border border-input bg-transparent"
+                />
+              </div>
+              <div className="flex-1 flex flex-col gap-1">
+                <Label className="text-xs text-muted-foreground">{t('gradient_end')}</Label>
+                <input
+                  type="color"
+                  value={penState.gradientEndColor}
+                  onChange={(e) => setGradientEndColor(e.target.value)}
+                  className="w-full h-8 rounded-md cursor-pointer border border-input bg-transparent"
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Single Color Picker */
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs text-muted-foreground">{t('color')}</Label>
+            <input
+              type="color"
+              value={penState.color}
+              onChange={(e) => setPenColor(e.target.value)}
+              className="w-full h-9 rounded-md cursor-pointer border border-input bg-transparent"
+            />
+          </div>
+        )}
       </div>
 
       {/* Pen Tip Selection - Grid with icons */}

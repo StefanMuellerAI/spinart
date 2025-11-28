@@ -11,6 +11,10 @@ export interface PenState {
   physicsEnabled: boolean;
   lineToolEnabled: boolean;
   pressureSensitivityEnabled: boolean;
+  // Gradient
+  gradientEnabled: boolean;
+  gradientStartColor: string;
+  gradientEndColor: string;
 }
 
 export interface ShapeState {
@@ -36,6 +40,11 @@ export interface DrawingRefs {
   // Apple Pencil / Stylus pressure support
   currentPressureRef: MutableRefObject<number>;
   pressureSensitivityEnabledRef: MutableRefObject<boolean>;
+  // Gradient refs
+  gradientEnabledRef: MutableRefObject<boolean>;
+  gradientStartColorRef: MutableRefObject<string>;
+  gradientEndColorRef: MutableRefObject<string>;
+  gradientProgressRef: MutableRefObject<number>;
 }
 
 interface UseSpinArtDrawingReturn {
@@ -49,6 +58,9 @@ interface UseSpinArtDrawingReturn {
   setIsEraser: (value: boolean) => void;
   setPhysicsEnabled: (value: boolean) => void;
   setLineToolEnabled: (value: boolean) => void;
+  // Gradient setters
+  setGradientStartColor: (color: string) => void;
+  setGradientEndColor: (color: string) => void;
   
   // Shape State
   shapeState: ShapeState;
@@ -67,6 +79,7 @@ interface UseSpinArtDrawingReturn {
   togglePhysics: () => void;
   toggleLineTool: () => void;
   togglePressureSensitivity: () => void;
+  toggleGradient: () => void;
 }
 
 export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
@@ -80,6 +93,11 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
   const [physicsEnabled, setPhysicsEnabled] = useState(false);
   const [lineToolEnabled, setLineToolEnabled] = useState(false);
   const [pressureSensitivityEnabled, setPressureSensitivityEnabled] = useState(true);
+
+  // Gradient State
+  const [gradientEnabled, setGradientEnabled] = useState(false);
+  const [gradientStartColor, setGradientStartColor] = useState('#FF0000');
+  const [gradientEndColor, setGradientEndColor] = useState('#0000FF');
 
   // Shape Tool State
   const [shapeColor, setShapeColor] = useState('#FF0000');
@@ -100,6 +118,12 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
   // Apple Pencil / Stylus pressure refs
   const currentPressureRef = useRef(0.5); // Default pressure for mouse
   const pressureSensitivityEnabledRef = useRef(pressureSensitivityEnabled);
+
+  // Gradient refs
+  const gradientEnabledRef = useRef(gradientEnabled);
+  const gradientStartColorRef = useRef(gradientStartColor);
+  const gradientEndColorRef = useRef(gradientEndColor);
+  const gradientProgressRef = useRef(0);
 
   // Sync state to refs for use in animation loop
   const penColorRef = useRef(penColor);
@@ -142,6 +166,19 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
   useEffect(() => {
     pressureSensitivityEnabledRef.current = pressureSensitivityEnabled;
   }, [pressureSensitivityEnabled]);
+
+  // Gradient refs sync
+  useEffect(() => {
+    gradientEnabledRef.current = gradientEnabled;
+  }, [gradientEnabled]);
+
+  useEffect(() => {
+    gradientStartColorRef.current = gradientStartColor;
+  }, [gradientStartColor]);
+
+  useEffect(() => {
+    gradientEndColorRef.current = gradientEndColor;
+  }, [gradientEndColor]);
 
   useEffect(() => {
     shapeSettingsRef.current = { 
@@ -189,6 +226,10 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     setPressureSensitivityEnabled(!pressureSensitivityEnabled);
   };
 
+  const toggleGradient = () => {
+    setGradientEnabled(!gradientEnabled);
+  };
+
   const penState: PenState = {
     color: penColor,
     size: penSize,
@@ -199,6 +240,9 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     physicsEnabled,
     lineToolEnabled,
     pressureSensitivityEnabled,
+    gradientEnabled,
+    gradientStartColor,
+    gradientEndColor,
   };
 
   const shapeState: ShapeState = {
@@ -223,6 +267,10 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     physicsEnabledRef,
     currentPressureRef,
     pressureSensitivityEnabledRef,
+    gradientEnabledRef,
+    gradientStartColorRef,
+    gradientEndColorRef,
+    gradientProgressRef,
   };
 
   return {
@@ -235,6 +283,8 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     setIsEraser,
     setPhysicsEnabled,
     setLineToolEnabled,
+    setGradientStartColor,
+    setGradientEndColor,
     
     shapeState,
     setShapeColor,
@@ -250,5 +300,6 @@ export function useSpinArtDrawing(): UseSpinArtDrawingReturn {
     togglePhysics,
     toggleLineTool,
     togglePressureSensitivity,
+    toggleGradient,
   };
 }

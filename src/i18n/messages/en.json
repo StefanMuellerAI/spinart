@@ -75,6 +75,10 @@
   "tooltip_eraser": "Switch to eraser mode. Removes drawn areas.",
   "tooltip_physics": "Simulates centrifugal force. Paint flies outward during rotation.",
   "tooltip_line": "Click two points consecutively to connect them with a straight line.",
-  "tooltip_outline": "Draws only the outline of the shape without fill."
+  "tooltip_outline": "Draws only the outline of the shape without fill.",
+  "gradient": "Gradient",
+  "gradient_start": "Start",
+  "gradient_end": "End",
+  "tooltip_gradient": "Color automatically changes from start to end color while drawing."
 }
 

@@ -75,6 +75,10 @@
   "tooltip_eraser": "Wechselt zum Radierer-Modus. Entfernt gezeichnete Bereiche.",
   "tooltip_physics": "Simuliert Zentrifugalkraft. Farbe fliegt bei Rotation nach außen.",
   "tooltip_line": "Klicke zwei Punkte nacheinander um sie mit einer geraden Linie zu verbinden.",
-  "tooltip_outline": "Zeichnet nur den Umriss der Form ohne Füllung."
+  "tooltip_outline": "Zeichnet nur den Umriss der Form ohne Füllung.",
+  "gradient": "Farbverlauf",
+  "gradient_start": "Start",
+  "gradient_end": "Ende",
+  "tooltip_gradient": "Farbe wechselt während des Zeichnens automatisch von Start- zu Endfarbe."
 }
 

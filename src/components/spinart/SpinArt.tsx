@@ -70,6 +70,9 @@ export default function SpinArt() {
     togglePhysics,
     toggleLineTool,
     togglePressureSensitivity,
+    toggleGradient,
+    setGradientStartColor,
+    setGradientEndColor,
     shapeState,
     setShapeColor,
     setShapeSizeX,
@@ -265,11 +268,16 @@ export default function SpinArt() {
       return;
     }
 
+    // Reset gradient progress for new stroke
+    if (penState.gradientEnabled) {
+      drawingRefs.gradientProgressRef.current = 0;
+    }
+
     drawingRefs.isDrawingRef.current = true;
     const pos = { x: e.clientX, y: e.clientY };
     drawingRefs.currentMouseScreenPosRef.current = pos;
     drawingRefs.prevMouseScreenPosRef.current = pos;
-  }, [showIntro, activeTab, penState.lineToolEnabled, getPaperCoordinatesForCanvas, rotationRef, drawingRefs, addToHistory]);
+  }, [showIntro, activeTab, penState.lineToolEnabled, penState.gradientEnabled, getPaperCoordinatesForCanvas, rotationRef, drawingRefs, addToHistory]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     // Update pressure continuously for smooth pressure-sensitive strokes
@@ -387,6 +395,9 @@ export default function SpinArt() {
         togglePhysics={togglePhysics}
         toggleLineTool={toggleLineTool}
         togglePressureSensitivity={togglePressureSensitivity}
+        toggleGradient={toggleGradient}
+        setGradientStartColor={setGradientStartColor}
+        setGradientEndColor={setGradientEndColor}
         shapeState={shapeState}
         setShapeColor={setShapeColor}
         setShapeSizeX={setShapeSizeX}
