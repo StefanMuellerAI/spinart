@@ -100,7 +100,8 @@ export function useSpinArtExport(
       gif.finish();
       
       // Create download
-      const blob = new Blob([gif.bytes()], { type: 'image/gif' });
+      const bytes = gif.bytes();
+      const blob = new Blob([new Uint8Array(bytes)], { type: 'image/gif' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
