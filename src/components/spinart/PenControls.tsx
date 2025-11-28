@@ -2,22 +2,27 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import { Pencil, Eraser, Atom, Minus, Info } from 'lucide-react';
-import { TipShape, getPenTips } from '@/types/spinart';
+import { 
+  Pencil, 
+  Eraser, 
+  Atom, 
+  Minus, 
+  Info,
+  Circle,
+  GripHorizontal,
+  Feather,
+  Highlighter,
+  Sparkles
+} from 'lucide-react';
+import { TipShape } from '@/types/spinart';
 import { PenState } from '@/hooks/useSpinArtDrawing';
 
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface PenControlsProps {
   penState: PenState;
@@ -32,6 +37,15 @@ interface PenControlsProps {
   togglePressureSensitivity: () => void;
 }
 
+// Tip configuration with icons
+const tipConfigs: { id: TipShape; icon: React.ReactNode; labelKey: string }[] = [
+  { id: 'round', icon: <Circle className="size-4" />, labelKey: 'round' },
+  { id: 'flat', icon: <GripHorizontal className="size-4" />, labelKey: 'flat' },
+  { id: 'calligraphy', icon: <Feather className="size-4" />, labelKey: 'calligraphy' },
+  { id: 'marker', icon: <Highlighter className="size-4" />, labelKey: 'marker' },
+  { id: 'spray', icon: <Sparkles className="size-4" />, labelKey: 'spray' },
+];
+
 export function PenControls({
   penState,
   setPenColor,
@@ -45,7 +59,6 @@ export function PenControls({
   togglePressureSensitivity,
 }: PenControlsProps) {
   const t = useTranslations();
-  const penTips = getPenTips(t);
 
   return (
     <>
@@ -58,6 +71,34 @@ export function PenControls({
           onChange={(e) => setPenColor(e.target.value)}
           className="w-full h-9 rounded-md cursor-pointer border border-input bg-transparent"
         />
+      </div>
+
+      {/* Pen Tip Selection - Grid with icons */}
+      <div className="flex flex-col gap-2">
+        <Label className="text-xs text-muted-foreground">{t('tip')}</Label>
+        <div className="grid grid-cols-4 gap-1.5">
+          {tipConfigs.map((tip) => (
+            <Tooltip key={tip.id}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setPenTip(tip.id)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 p-2 rounded-md border transition-all",
+                    "hover:bg-accent hover:border-accent-foreground/20",
+                    penState.tip === tip.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-input"
+                  )}
+                >
+                  {tip.icon}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p className="text-xs">{t(tip.labelKey)}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
       </div>
 
       {/* Pen Size */}
@@ -103,23 +144,6 @@ export function PenControls({
           max={100}
           step={1}
         />
-      </div>
-
-      {/* Pen Tip */}
-      <div className="flex flex-col gap-2">
-        <Label className="text-xs text-muted-foreground">{t('tip')}</Label>
-        <Select value={penState.tip} onValueChange={(value) => setPenTip(value as TipShape)}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {penTips.map((tip) => (
-              <SelectItem key={tip.id} value={tip.id}>
-                {tip.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       <Separator />

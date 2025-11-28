@@ -74,6 +74,7 @@
   "tooltip_pressure": "Apple Pencilの筆圧でストロークの太さが変わります。軽い筆圧＝細い線。",
   "tooltip_eraser": "消しゴムモードに切り替えます。描いた部分を消去します。",
   "tooltip_physics": "遠心力をシミュレート。回転中にインクが外側に飛びます。",
-  "tooltip_line": "2点を順番にクリックして直線で結びます。"
+  "tooltip_line": "2点を順番にクリックして直線で結びます。",
+  "tooltip_outline": "塗りつぶしなしで形の輪郭のみを描画します。"
 }
 

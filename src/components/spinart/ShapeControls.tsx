@@ -2,21 +2,28 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import { MoveHorizontal, MoveVertical, RotateCcw, Square } from 'lucide-react';
-import { StampShape, getStampShapes } from '@/types/spinart';
+import { 
+  MoveHorizontal, 
+  MoveVertical, 
+  RotateCcw, 
+  Square, 
+  Info,
+  RectangleHorizontal,
+  Circle,
+  Triangle,
+  Minus,
+  ArrowRight,
+  Star
+} from 'lucide-react';
+import { StampShape } from '@/types/spinart';
 import { ShapeState } from '@/hooks/useSpinArtDrawing';
 
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface ShapeControlsProps {
   shapeState: ShapeState;
@@ -28,6 +35,16 @@ interface ShapeControlsProps {
   setStrokeOnly: (value: boolean) => void;
 }
 
+// Shape configuration with icons
+const shapeConfigs: { id: StampShape; icon: React.ReactNode; labelKey: string }[] = [
+  { id: 'rectangle', icon: <RectangleHorizontal className="size-4" />, labelKey: 'rectangle' },
+  { id: 'ellipse', icon: <Circle className="size-4" />, labelKey: 'ellipse' },
+  { id: 'triangle', icon: <Triangle className="size-4" />, labelKey: 'triangle' },
+  { id: 'star', icon: <Star className="size-4" />, labelKey: 'star' },
+  { id: 'line', icon: <Minus className="size-4" />, labelKey: 'line' },
+  { id: 'arrow', icon: <ArrowRight className="size-4" />, labelKey: 'arrow' },
+];
+
 export function ShapeControls({
   shapeState,
   setShapeColor,
@@ -38,7 +55,6 @@ export function ShapeControls({
   setStrokeOnly,
 }: ShapeControlsProps) {
   const t = useTranslations();
-  const stampShapes = getStampShapes(t);
 
   return (
     <>
@@ -51,6 +67,34 @@ export function ShapeControls({
           onChange={(e) => setShapeColor(e.target.value)}
           className="w-full h-9 rounded-md cursor-pointer border border-input bg-transparent"
         />
+      </div>
+
+      {/* Shape Type Selection - Grid with icons */}
+      <div className="flex flex-col gap-2">
+        <Label className="text-xs text-muted-foreground">{t('shapes')}</Label>
+        <div className="grid grid-cols-4 gap-1.5">
+          {shapeConfigs.map((shape) => (
+            <Tooltip key={shape.id}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setShapeType(shape.id)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 p-2 rounded-md border transition-all",
+                    "hover:bg-accent hover:border-accent-foreground/20",
+                    shapeState.type === shape.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-input"
+                  )}
+                >
+                  {shape.icon}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p className="text-xs">{t(shape.labelKey)}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
       </div>
 
       {/* Shape Size X (Width) */}
@@ -107,31 +151,24 @@ export function ShapeControls({
         />
       </div>
 
-      {/* Shape Type */}
-      <div className="flex flex-col gap-2">
-        <Label className="text-xs text-muted-foreground">{t('shapes')}</Label>
-        <Select value={shapeState.type} onValueChange={(value) => setShapeType(value as StampShape)}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {stampShapes.map((shape) => (
-              <SelectItem key={shape.id} value={shape.id}>
-                {shape.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       <Separator />
 
       {/* Stroke Only Toggle */}
       <div className="flex items-center justify-between">
-        <Label htmlFor="stroke-switch" className="text-xs cursor-pointer flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
           <Square className="size-3.5" />
-          {t('outline_only')}
-        </Label>
+          <Label htmlFor="stroke-switch" className="text-xs cursor-pointer">
+            {t('outline_only')}
+          </Label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="size-3 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[200px]">
+              <p className="text-xs">{t('tooltip_outline')}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <Switch
           id="stroke-switch"
           checked={shapeState.strokeOnly}

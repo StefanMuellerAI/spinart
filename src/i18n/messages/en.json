@@ -74,6 +74,7 @@
   "tooltip_pressure": "Stroke width responds to Apple Pencil pressure. Light pressure = thinner line.",
   "tooltip_eraser": "Switch to eraser mode. Removes drawn areas.",
   "tooltip_physics": "Simulates centrifugal force. Paint flies outward during rotation.",
-  "tooltip_line": "Click two points consecutively to connect them with a straight line."
+  "tooltip_line": "Click two points consecutively to connect them with a straight line.",
+  "tooltip_outline": "Draws only the outline of the shape without fill."
 }
 

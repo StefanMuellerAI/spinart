@@ -74,6 +74,7 @@
   "tooltip_pressure": "Strichstärke reagiert auf Apple Pencil Druck. Leichter Druck = dünnere Linie.",
   "tooltip_eraser": "Wechselt zum Radierer-Modus. Entfernt gezeichnete Bereiche.",
   "tooltip_physics": "Simuliert Zentrifugalkraft. Farbe fliegt bei Rotation nach außen.",
-  "tooltip_line": "Klicke zwei Punkte nacheinander um sie mit einer geraden Linie zu verbinden."
+  "tooltip_line": "Klicke zwei Punkte nacheinander um sie mit einer geraden Linie zu verbinden.",
+  "tooltip_outline": "Zeichnet nur den Umriss der Form ohne Füllung."
 }
 

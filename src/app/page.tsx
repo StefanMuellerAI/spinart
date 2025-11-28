@@ -10,15 +10,18 @@ export default async function RootPage() {
   const acceptLanguage = headersList.get('accept-language') || '';
   
   // Determine locale from Accept-Language header
-  let locale = 'de'; // default
+  let locale = 'en'; // default fallback is English
   
   // Check language preferences in order
   const languages = acceptLanguage.toLowerCase();
-  if (languages.startsWith('en') || languages.includes(',en')) {
-    locale = 'en';
+  if (languages.startsWith('de') || languages.includes(',de')) {
+    locale = 'de';
   } else if (languages.startsWith('ja') || languages.includes(',ja')) {
     locale = 'ja';
+  } else if (languages.startsWith('en') || languages.includes(',en')) {
+    locale = 'en';
   }
+  // If no match found, locale stays 'en' (default)
   
   // Server-side redirect (no client rendering needed)
   redirect(`/${locale}`);
