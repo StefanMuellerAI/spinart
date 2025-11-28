@@ -30,7 +30,7 @@ const translations: Record<Language, Record<string, string>> = {
     space_text: 'Drücke Leertaste um zu Stoppen & Zurückzusetzen.',
     undo: 'Rückgängig',
     redo: 'Wiederholen',
-    shapes: 'Formen',
+    shapes: 'Form',
     color: 'Farbe',
     size: 'Größe',
     rotation: 'Rotation',
@@ -41,9 +41,12 @@ const translations: Record<Language, Record<string, string>> = {
     star: 'Stern',
     stop: 'Stop',
     level: 'Stufe',
-    pens: 'Stifte',
-    tip: 'Spitze',
+    left: 'Links',
+    right: 'Rechts',
+    pens: 'Stift',
+    tip: 'Stiftspitze',
     blur: 'Blur',
+    opacity: 'Deckkraft',
     eraser: 'Radierer',
     clear_paper: 'Papier leeren',
     export_video: 'Export als Video',
@@ -58,7 +61,35 @@ const translations: Record<Language, Record<string, string>> = {
     footer_privacy: 'Datenschutz',
     theme_light: 'Hell',
     theme_dark: 'Dunkel',
-    inspired_by: 'Inspiriert von LimbaTrip'
+    inspired_by: 'Inspiriert von LimbaTrip',
+    // Neue Toolbar-Übersetzungen
+    save: 'Speichern',
+    play: 'Play',
+    speed: 'Geschwindigkeit',
+    physics_pen: 'Physikstift',
+    line_tool: 'Linientool (2 Punkte)',
+    outline_only: 'Nur Kontur',
+    // Neue Formen
+    rectangle: 'Rechteck',
+    ellipse: 'Ellipse',
+    line: 'Linie',
+    arrow: 'Pfeil',
+    // Neue Stiftspitzen
+    round: 'Rund',
+    flat: 'Flach',
+    calligraphy: 'Kalligrafie',
+    marker: 'Marker',
+    spray: 'Spray',
+    // Toolbar Labels
+    erase_all: 'Alles löschen',
+    angle: 'Winkel',
+    pen_size: 'Stiftgröße',
+    shape_size: 'Größe',
+    // iPad / Stylus
+    pressure_sensitivity: 'Druckempfindlichkeit',
+    // Shape dimensions
+    width: 'Breite',
+    height: 'Höhe'
   },
   en: {
     title: 'Spin Art',
@@ -76,7 +107,7 @@ const translations: Record<Language, Record<string, string>> = {
     space_text: 'Press Space to Stop & Reset.',
     undo: 'Undo',
     redo: 'Redo',
-    shapes: 'Shapes',
+    shapes: 'Shape',
     color: 'Color',
     size: 'Size',
     rotation: 'Rotation',
@@ -87,9 +118,12 @@ const translations: Record<Language, Record<string, string>> = {
     star: 'Star',
     stop: 'Stop',
     level: 'Level',
-    pens: 'Pens',
-    tip: 'Tip',
+    left: 'Left',
+    right: 'Right',
+    pens: 'Pen',
+    tip: 'Pen Tip',
     blur: 'Blur',
+    opacity: 'Opacity',
     eraser: 'Eraser',
     clear_paper: 'Clear Paper',
     export_video: 'Export as Video',
@@ -104,7 +138,35 @@ const translations: Record<Language, Record<string, string>> = {
     footer_privacy: 'Privacy',
     theme_light: 'Light',
     theme_dark: 'Dark',
-    inspired_by: 'Inspired by LimbaTrip'
+    inspired_by: 'Inspired by LimbaTrip',
+    // New toolbar translations
+    save: 'Save',
+    play: 'Play',
+    speed: 'Speed',
+    physics_pen: 'Physics Pen',
+    line_tool: 'Line Tool (2 Points)',
+    outline_only: 'Outline Only',
+    // New shapes
+    rectangle: 'Rectangle',
+    ellipse: 'Ellipse',
+    line: 'Line',
+    arrow: 'Arrow',
+    // New pen tips
+    round: 'Round',
+    flat: 'Flat',
+    calligraphy: 'Calligraphy',
+    marker: 'Marker',
+    spray: 'Spray',
+    // Toolbar labels
+    erase_all: 'Erase All',
+    angle: 'Angle',
+    pen_size: 'Pen Size',
+    shape_size: 'Size',
+    // iPad / Stylus
+    pressure_sensitivity: 'Pressure',
+    // Shape dimensions
+    width: 'Width',
+    height: 'Height'
   },
   ja: {
     title: 'スピンアート',
@@ -133,9 +195,12 @@ const translations: Record<Language, Record<string, string>> = {
     star: '星',
     stop: '停止',
     level: 'レベル',
+    left: '左',
+    right: '右',
     pens: 'ペン',
-    tip: '先端',
+    tip: 'ペン先',
     blur: 'ぼかし',
+    opacity: '不透明度',
     eraser: '消しゴム',
     clear_paper: '紙をクリア',
     export_video: 'ビデオとしてエクスポート',
@@ -150,7 +215,35 @@ const translations: Record<Language, Record<string, string>> = {
     footer_privacy: 'プライバシー',
     theme_light: 'ライト',
     theme_dark: 'ダーク',
-    inspired_by: 'Inspired by LimbaTripに触発されました'
+    inspired_by: 'Inspired by LimbaTripに触発されました',
+    // 新しいツールバー翻訳
+    save: '保存',
+    play: '再生',
+    speed: '速度',
+    physics_pen: '物理ペン',
+    line_tool: 'ラインツール（2点）',
+    outline_only: '輪郭のみ',
+    // 新しい形
+    rectangle: '長方形',
+    ellipse: '楕円',
+    line: '線',
+    arrow: '矢印',
+    // 新しいペン先
+    round: '丸',
+    flat: 'フラット',
+    calligraphy: 'カリグラフィ',
+    marker: 'マーカー',
+    spray: 'スプレー',
+    // ツールバーラベル
+    erase_all: '全て消去',
+    angle: '角度',
+    pen_size: 'ペンサイズ',
+    shape_size: 'サイズ',
+    // iPad / スタイラス
+    pressure_sensitivity: '筆圧感知',
+    // 形状の寸法
+    width: '幅',
+    height: '高さ'
   }
 };
 

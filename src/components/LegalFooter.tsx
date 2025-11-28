@@ -16,8 +16,17 @@ export default function LegalFooter() {
 
   return (
     <>
-      <footer className="w-full py-4 bg-gray-900 text-gray-400 text-sm text-center border-t border-gray-800">
-        <div className="flex justify-center gap-6">
+      <footer className="w-full py-3 bg-gray-900 text-gray-400 text-sm text-center border-t border-gray-800">
+        <div className="flex justify-center items-center gap-6">
+          <a
+            href="https://www.youtube.com/@LimbaTrip"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-blue-400 transition-colors"
+          >
+            Inspiriert von LimbaTrip
+          </a>
+          <span className="text-gray-600">•</span>
           <button 
             onClick={() => openModal('Impressum', IMPRESSUM_TEXT)}
             className="hover:text-white transition-colors"
