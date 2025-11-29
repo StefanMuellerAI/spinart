@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -7,16 +7,6 @@ import { routing } from '@/i18n/routing';
 import { AppProvider } from "@/context/AppContext";
 import type { Locale } from "@/i18n/config";
 import "../globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Spinart by StefanAI",
@@ -65,17 +55,38 @@ export default async function LocaleLayout({
   // Providing all messages to the client side
   const messages = await getMessages();
 
+  const publishableKey =
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+    process.env.CLERK_PUBLISHABLE_KEY;
+
+  if (!publishableKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY or CLERK_PUBLISHABLE_KEY. Please add your Clerk publishable key to .env.local."
+    );
+  }
+
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <AppProvider locale={locale as Locale}>
-            {children}
-          </AppProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <ClerkProvider publishableKey={publishableKey}>
+      <html lang={locale} suppressHydrationWarning>
+        <body className="antialiased">
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <AppProvider locale={locale as Locale}>
+              <div className="flex items-center justify-end gap-3 px-4 py-3 bg-gray-100 dark:bg-gray-900 text-sm">
+                <SignedOut>
+                  <div className="flex items-center gap-2">
+                    <SignInButton />
+                    <SignUpButton />
+                  </div>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton />
+                </SignedIn>
+              </div>
+              {children}
+            </AppProvider>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

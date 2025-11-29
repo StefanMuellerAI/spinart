@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   devIndicators: false,
+  experimental: {
+    // Allow Turbopack to use system TLS certificates so Google Fonts can be fetched in restricted environments
+    turbopackUseSystemTlsCerts: true,
+  },
 };
 
 export default withNextIntl(nextConfig);
