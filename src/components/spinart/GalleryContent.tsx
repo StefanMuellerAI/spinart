@@ -4,7 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, Download, Loader2, RefreshCcw, Sparkles, Video } from 'lucide-react';
+import { ArrowRight, Download, Loader2, RefreshCcw, Sparkles, Trash2, Video } from 'lucide-react';
 
 import { useGalleryStorage } from '@/hooks';
 import { exportCanvasAnimation, type ExportFormat } from '@/hooks/useSpinArtExport';
@@ -36,7 +36,7 @@ async function createCanvasFromDataUrl(imageDataUrl: string) {
 
 export function GalleryContent({ locale }: GalleryContentProps) {
   const t = useTranslations();
-  const { drafts, isReady } = useGalleryStorage();
+  const { drafts, isReady, deleteDraft } = useGalleryStorage();
   const [exporting, setExporting] = useState<{ id: string; format: ExportFormat } | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -55,6 +55,16 @@ export function GalleryContent({ locale }: GalleryContentProps) {
       setExporting(null);
     }
   }, [drafts, t]);
+
+  const handleDelete = useCallback((draftId: string) => {
+    const confirmed = window.confirm(t('gallery_delete_confirm'));
+    if (!confirmed) return;
+
+    if (exporting?.id === draftId) {
+      setExporting(null);
+    }
+    deleteDraft(draftId);
+  }, [deleteDraft, exporting, t]);
 
   const cards = useMemo(() => [...drafts].sort((a, b) => b.updatedAt - a.updatedAt), [drafts]);
 
@@ -181,6 +191,15 @@ export function GalleryContent({ locale }: GalleryContentProps) {
                     <ArrowRight className="size-4" />
                     {t('continue_editing')}
                   </Link>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleDelete(draft.id)}
+                    disabled={isExporting}
+                    className="text-red-600 hover:text-red-700 dark:text-red-400"
+                  >
+                    <Trash2 className="size-4" />
+                    <span className="ml-2">{t('gallery_delete')}</span>
+                  </Button>
                   <Button
                     variant="outline"
                     onClick={() => handleExport(draft.id, 'gif')}

@@ -130,6 +130,8 @@
   "gallery_quickstart_3": "Markiere Favoriten, sobald deine Sammlung wächst.",
   "gallery_preview_hint": "Drehende Vorschau",
   "gallery_preview_alt": "Gespeicherte Spinart Vorschau",
-  "gallery_editable": "Jederzeit fortsetzen"
+  "gallery_editable": "Jederzeit fortsetzen",
+  "gallery_delete": "Löschen",
+  "gallery_delete_confirm": "Soll dieses Design aus deiner Galerie entfernt werden?"
 }
 

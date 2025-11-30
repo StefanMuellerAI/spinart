@@ -130,6 +130,8 @@
   "gallery_quickstart_3": "Mark favorites as your collection grows.",
   "gallery_preview_hint": "Rotating preview",
   "gallery_preview_alt": "Saved spinart preview",
-  "gallery_editable": "Resume anytime"
+  "gallery_editable": "Resume anytime",
+  "gallery_delete": "Delete",
+  "gallery_delete_confirm": "Remove this design from your gallery?"
 }
 

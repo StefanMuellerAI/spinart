@@ -34,6 +34,7 @@ export default function SpinArt() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const isSavingRef = useRef(false);
   const searchParams = useSearchParams();
 
   // Tab state
@@ -371,7 +372,9 @@ export default function SpinArt() {
   }, [getDraftById, initializeHistory, isGalleryReady, searchParams]);
 
   const handleSaveToGallery = useCallback(async () => {
-    if (!paperCanvasRef.current) return;
+    if (!paperCanvasRef.current || isSavingRef.current) return;
+
+    isSavingRef.current = true;
     setIsSaving(true);
     try {
       const saved = saveDraftFromCanvas(
@@ -385,6 +388,7 @@ export default function SpinArt() {
       setTimeout(() => setSaveMessage(''), 3000);
     } finally {
       setIsSaving(false);
+      isSavingRef.current = false;
     }
   }, [currentDraftId, direction, playbackSpeed, saveDraftFromCanvas, t]);
 
