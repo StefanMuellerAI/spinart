@@ -132,6 +132,17 @@
   "gallery_preview_alt": "Saved spinart preview",
   "gallery_editable": "Resume anytime",
   "gallery_delete": "Delete",
-  "gallery_delete_confirm": "Remove this design from your gallery?"
+  "gallery_delete_confirm": "Remove this design from your gallery?",
+  "gallery_delete_title": "Delete design",
+  "gallery_delete_cancel": "Keep design",
+  "gallery_delete_confirm_label": "Delete permanently",
+  "export_success_title": "Export ready",
+  "export_success_description": "Your animation is saved to your device.",
+  "export_success_close": "Great",
+  "export_success_gif": "The GIF export has finished. Check your downloads to share it right away.",
+  "export_success_mp4": "The MP4 export has finished. The faster render is saved in your downloads.",
+  "save_success_title": "Design saved",
+  "save_success_description": "Your spin art is now stored in the gallery for later edits and exports.",
+  "save_success_close": "Continue drawing"
 }
 

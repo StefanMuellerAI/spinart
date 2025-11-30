@@ -11,6 +11,7 @@ import { exportCanvasAnimation, type ExportFormat } from '@/hooks/useSpinArtExpo
 import { CANVAS_SIZE } from '@/types/spinart';
 import type { Locale } from '@/i18n/config';
 import { Button } from '@/components/ui/button';
+import { Modal } from '@/components/ui/modal';
 
 interface GalleryContentProps {
   locale: Locale;
@@ -39,6 +40,8 @@ export function GalleryContent({ locale }: GalleryContentProps) {
   const { drafts, isReady, deleteDraft } = useGalleryStorage();
   const [exporting, setExporting] = useState<{ id: string; format: ExportFormat } | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [deleteDraftId, setDeleteDraftId] = useState<string | null>(null);
+  const [exportedFormat, setExportedFormat] = useState<ExportFormat | null>(null);
 
   const handleExport = useCallback(async (draftId: string, format: ExportFormat) => {
     const draft = drafts.find(item => item.id === draftId);
@@ -48,6 +51,7 @@ export function GalleryContent({ locale }: GalleryContentProps) {
     try {
       const canvas = await createCanvasFromDataUrl(draft.imageDataUrl);
       await exportCanvasAnimation(canvas, draft.playbackSpeed, draft.direction, format);
+      setExportedFormat(format);
     } catch (error) {
       console.error('Export failed', error);
       setErrorMessage(t('export_failed'));
@@ -57,14 +61,21 @@ export function GalleryContent({ locale }: GalleryContentProps) {
   }, [drafts, t]);
 
   const handleDelete = useCallback((draftId: string) => {
-    const confirmed = window.confirm(t('gallery_delete_confirm'));
-    if (!confirmed) return;
+    setDeleteDraftId(draftId);
+  }, []);
 
-    if (exporting?.id === draftId) {
+  const confirmDelete = useCallback(() => {
+    if (!deleteDraftId) return;
+    if (exporting?.id === deleteDraftId) {
       setExporting(null);
     }
-    deleteDraft(draftId);
-  }, [deleteDraft, exporting, t]);
+    deleteDraft(deleteDraftId);
+    setDeleteDraftId(null);
+  }, [deleteDraft, deleteDraftId, exporting]);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteDraftId(null);
+  }, []);
 
   const cards = useMemo(() => [...drafts].sort((a, b) => b.updatedAt - a.updatedAt), [drafts]);
 
@@ -134,6 +145,37 @@ export function GalleryContent({ locale }: GalleryContentProps) {
 
   return (
     <div className="space-y-4">
+      <Modal
+        open={!!deleteDraftId}
+        onClose={closeDeleteModal}
+        title={t('gallery_delete_title')}
+        description={t('gallery_delete_confirm')}
+        actions={(
+          <>
+            <Button variant="ghost" onClick={closeDeleteModal}>
+              {t('gallery_delete_cancel')}
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              {t('gallery_delete_confirm_label')}
+            </Button>
+          </>
+        )}
+      />
+
+      <Modal
+        open={!!exportedFormat}
+        onClose={() => setExportedFormat(null)}
+        title={t('export_success_title')}
+        description={t('export_success_description')}
+        actions={(
+          <Button onClick={() => setExportedFormat(null)}>
+            {t('export_success_close')}
+          </Button>
+        )}
+      >
+        {exportedFormat === 'gif' ? t('export_success_gif') : t('export_success_mp4')}
+      </Modal>
+
       {errorMessage && (
         <div className="rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/30 dark:border-red-800 text-red-700 dark:text-red-100 px-4 py-3">
           {errorMessage}

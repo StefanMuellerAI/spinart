@@ -132,6 +132,17 @@
   "gallery_preview_alt": "保存されたスピンアートのプレビュー",
   "gallery_editable": "いつでも再開",
   "gallery_delete": "削除",
-  "gallery_delete_confirm": "このデザインをギャラリーから削除しますか？"
+  "gallery_delete_confirm": "このデザインをギャラリーから削除しますか？",
+  "gallery_delete_title": "デザインを削除",
+  "gallery_delete_cancel": "残しておく",
+  "gallery_delete_confirm_label": "削除する",
+  "export_success_title": "エクスポート完了",
+  "export_success_description": "アニメーションが端末に保存されました。",
+  "export_success_close": "OK",
+  "export_success_gif": "GIFの書き出しが完了しました。ダウンロードフォルダを確認してください。",
+  "export_success_mp4": "MP4の書き出しが完了しました。より速い再生で保存されています。",
+  "save_success_title": "デザインを保存しました",
+  "save_success_description": "スピンアートがギャラリーに保存され、後から編集やエクスポートできます。",
+  "save_success_close": "制作を続ける"
 }
 

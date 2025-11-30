@@ -22,9 +22,9 @@ const GIF_SEGMENTS: ExportSegment[] = [
 ];
 
 const MP4_SEGMENTS: ExportSegment[] = [
-  { durationSeconds: 5, speed: 9.1 },
-  { durationSeconds: 5, speed: 20 },
-  { durationSeconds: 5, speed: MAX_PLAYBACK_SPEED },
+  { durationSeconds: 4, speed: 18 },
+  { durationSeconds: 4, speed: 36 },
+  { durationSeconds: 4, speed: MAX_PLAYBACK_SPEED },
 ];
 
 function drawFrame(
