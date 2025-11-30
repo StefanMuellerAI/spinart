@@ -132,6 +132,17 @@
   "gallery_preview_alt": "Gespeicherte Spinart Vorschau",
   "gallery_editable": "Jederzeit fortsetzen",
   "gallery_delete": "Löschen",
-  "gallery_delete_confirm": "Soll dieses Design aus deiner Galerie entfernt werden?"
+  "gallery_delete_confirm": "Soll dieses Design aus deiner Galerie entfernt werden?",
+  "gallery_delete_title": "Design löschen",
+  "gallery_delete_cancel": "Doch behalten",
+  "gallery_delete_confirm_label": "Jetzt löschen",
+  "export_success_title": "Export fertig",
+  "export_success_description": "Die Animation wurde auf deinem Gerät gespeichert.",
+  "export_success_close": "Alles klar",
+  "export_success_gif": "Der GIF-Export ist abgeschlossen. Im Download-Ordner kannst du ihn direkt teilen.",
+  "export_success_mp4": "Der MP4-Export ist abgeschlossen. Die schnellere Version liegt im Download-Ordner.",
+  "save_success_title": "Design gespeichert",
+  "save_success_description": "Dein Spinart-Design liegt jetzt in der Galerie und kann weiter bearbeitet oder exportiert werden.",
+  "save_success_close": "Weiter malen"
 }
 

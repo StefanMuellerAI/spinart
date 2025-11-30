@@ -13,6 +13,8 @@ import {
   useGalleryStorage,
 } from '@/hooks';
 import { drawPenTip, drawStampShape, initializePaperCanvas } from '@/utils/spinart/drawing';
+import { Modal } from '@/components/ui/modal';
+import { Button } from '@/components/ui/button';
 
 import { MobileWarning } from './MobileWarning';
 import { Toolbar } from './Toolbar';
@@ -34,6 +36,7 @@ export default function SpinArt() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const isSavingRef = useRef(false);
   const searchParams = useSearchParams();
 
@@ -385,6 +388,7 @@ export default function SpinArt() {
       );
       setCurrentDraftId(saved.id);
       setSaveMessage(t('saved_to_gallery'));
+      setShowSaveModal(true);
       setTimeout(() => setSaveMessage(''), 3000);
     } finally {
       setIsSaving(false);
@@ -409,9 +413,21 @@ export default function SpinArt() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white select-none transition-colors duration-300">
+      <Modal
+        open={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        title={t('save_success_title')}
+        description={t('save_success_description')}
+        actions={(
+          <Button onClick={() => setShowSaveModal(false)}>
+            {t('save_success_close')}
+          </Button>
+        )}
+      />
+
       {/* Mobile Warning Overlay */}
       {showMobileWarning && (
-        <MobileWarning 
+        <MobileWarning
           onClose={() => setShowMobileWarning(false)} 
         />
       )}
