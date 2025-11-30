@@ -11,6 +11,8 @@ interface SignUpCardProps {
 export default function SignUpCard({ locale }: SignUpCardProps) {
   const t = useTranslations();
 
+  const redirectUrl = `/${locale}/gallery`;
+
   const appearance = {
     elements: {
       rootBox: 'w-full',
@@ -43,7 +45,8 @@ export default function SignUpCard({ locale }: SignUpCardProps) {
         path={`/${locale}/sign-up`}
         routing="path"
         signInUrl={`/${locale}/sign-in`}
-        afterSignUpUrl={`/${locale}/gallery`}
+        redirectUrl={redirectUrl}
+        afterSignUpUrl={redirectUrl}
         appearance={appearance}
       />
     </div>
