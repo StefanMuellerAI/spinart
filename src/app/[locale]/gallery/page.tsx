@@ -14,7 +14,7 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     redirect(`/${locale}/sign-in`);
   }
