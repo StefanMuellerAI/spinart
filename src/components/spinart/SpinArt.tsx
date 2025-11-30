@@ -2,14 +2,15 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { CANVAS_SIZE, ToolTab } from '@/types/spinart';
-import { 
-  useSpinArtHistory, 
-  useSpinArtDrawing, 
-  useSpinArtAnimation, 
-  useSpinArtExport, 
-  useKeyboardControls, 
-  useCanvasSize 
+import {
+  useSpinArtHistory,
+  useSpinArtDrawing,
+  useSpinArtAnimation,
+  useKeyboardControls,
+  useCanvasSize,
+  useGalleryStorage,
 } from '@/hooks';
 import { drawPenTip, drawStampShape, initializePaperCanvas } from '@/utils/spinart/drawing';
 
@@ -29,11 +30,11 @@ export default function SpinArt() {
   const [direction, setDirection] = useState(1);
   const [showIntro, setShowIntro] = useState(true);
   const [showMobileWarning, setShowMobileWarning] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   
-  // Export restrictions state
-  const [drawCount, setDrawCount] = useState(0);
-  const [isTimeRequirementMet, setIsTimeRequirementMet] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<ToolTab>('pen');
@@ -95,11 +96,11 @@ export default function SpinArt() {
     initializeHistory,
   } = useSpinArtHistory(paperCanvasRef);
 
-  const { isExporting, handleExportVideo } = useSpinArtExport(
-    paperCanvasRef, 
-    playbackSpeed, 
-    direction
-  );
+  const {
+    saveDraftFromCanvas,
+    getDraftById,
+    isReady: isGalleryReady,
+  } = useGalleryStorage();
 
   // Animation refs need to include playback refs
   const animationRefs = {
@@ -139,14 +140,6 @@ export default function SpinArt() {
   });
 
   // Initialize on mount
-  useEffect(() => {
-    setIsMounted(true);
-    const timer = setTimeout(() => {
-      setIsTimeRequirementMet(true);
-    }, 120000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Check for mobile device - improved logic for iPad with stylus
   useEffect(() => {
     const checkDevice = () => {
@@ -247,7 +240,6 @@ export default function SpinArt() {
           );
         }
         addToHistory();
-        setDrawCount(prev => prev + 1);
       }
       return;
     }
@@ -289,7 +281,6 @@ export default function SpinArt() {
           }
           
           addToHistory();
-          setDrawCount(prev => prev + 1);
         }
         drawingRefs.lineStartPaperPosRef.current = null;
       }
@@ -334,7 +325,6 @@ export default function SpinArt() {
     drawingRefs.isDraggingDiscRef.current = false;
     if (drawingRefs.isDrawingRef.current) {
       addToHistory();
-      setDrawCount(prev => prev + 1);
     }
     drawingRefs.isDrawingRef.current = false;
     if (activeTab === 'pen') {
@@ -357,6 +347,46 @@ export default function SpinArt() {
   const togglePlay = useCallback(() => {
     setIsPlaying(!isPlaying);
   }, [isPlaying]);
+
+  // Load a draft from the gallery if the URL contains a draftId
+  useEffect(() => {
+    const draftId = searchParams.get('draftId');
+    if (!draftId || !isGalleryReady || !paperCanvasRef.current) return;
+
+    const draft = getDraftById(draftId);
+    if (!draft) return;
+
+    const image = new Image();
+    image.onload = () => {
+      const ctx = paperCanvasRef.current?.getContext('2d');
+      if (!ctx) return;
+      ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      ctx.drawImage(image, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      const snapshot = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+      initializeHistory(snapshot);
+      setShowIntro(false);
+      setCurrentDraftId(draftId);
+    };
+    image.src = draft.imageDataUrl;
+  }, [getDraftById, initializeHistory, isGalleryReady, searchParams]);
+
+  const handleSaveToGallery = useCallback(async () => {
+    if (!paperCanvasRef.current) return;
+    setIsSaving(true);
+    try {
+      const saved = saveDraftFromCanvas(
+        paperCanvasRef.current,
+        playbackSpeed,
+        direction,
+        currentDraftId ?? undefined,
+      );
+      setCurrentDraftId(saved.id);
+      setSaveMessage(t('saved_to_gallery'));
+      setTimeout(() => setSaveMessage(''), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [currentDraftId, direction, playbackSpeed, saveDraftFromCanvas, t]);
 
   const toggleToolbarCollapse = useCallback(() => {
     setIsToolbarCollapsed(!isToolbarCollapsed);
@@ -405,14 +435,12 @@ export default function SpinArt() {
         setActiveTab={setActiveTab}
         canUndo={canUndo}
         canRedo={canRedo}
-        isExporting={isExporting}
         onUndo={undo}
         onRedo={redo}
         onEraseAll={eraseAll}
-        onExportVideo={handleExportVideo}
-        isTimeRequirementMet={isTimeRequirementMet}
-        drawCount={drawCount}
-        isMounted={isMounted}
+        onSaveDraft={handleSaveToGallery}
+        isSaving={isSaving}
+        saveMessage={saveMessage}
         penState={penState}
         setPenColor={setPenColor}
         setPenSize={setPenSize}

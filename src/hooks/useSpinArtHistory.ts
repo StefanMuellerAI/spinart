@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, MutableRefObject } from 'react';
+import { useState, useCallback, MutableRefObject } from 'react';
 import { CANVAS_SIZE, DISC_RADIUS } from '@/types/spinart';
 
 interface UseSpinArtHistoryReturn {

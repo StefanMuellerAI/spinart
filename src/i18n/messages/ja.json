@@ -33,11 +33,18 @@
   "opacity": "不透明度",
   "eraser": "消しゴム",
   "clear_paper": "紙をクリア",
+  "save_to_gallery": "ギャラリーに保存",
+  "saving": "保存中...",
+  "saved_to_gallery": "ギャラリーに保存しました",
   "export_video": "ビデオとしてエクスポート",
   "export_running": "エクスポート中...",
   "export_locked": "エクスポート ロック中",
+  "export_gif": "GIFをエクスポート",
+  "export_mp4": "MP4をエクスポート",
+  "export_failed": "エクスポートに失敗しました。もう一度お試しください。",
   "wait": "待機",
   "draw_more": "もっと描く",
+  "loading": "読み込み中...",
   "mobile_warning_title": "モバイル向けに最適化されていません",
   "mobile_warning_text": "このアプリはキーボードとマウスを使用するデスクトップ向けに設計されています。タッチスクリーンでは操作やレイアウトが期待通りに機能しない場合があります。",
   "continue_anyway": "とにかく続ける",
@@ -87,6 +94,7 @@
   "nav_gallery": "ギャラリー",
   "nav_sign_in": "ログイン",
   "nav_sign_up": "新規登録",
+  "continue_editing": "編集を続ける",
   "auth_pill_fast": "すぐに始められる",
   "auth_pill_secure": "安全なプロフィール",
   "auth_pill_editor": "エディターへシームレス",
@@ -119,6 +127,9 @@
   "gallery_quickstart_text": "ギャラリーを新しいセッションの出発点に。",
   "gallery_quickstart_1": "エディターを開いて新しいカラーを試す。",
   "gallery_quickstart_2": "お気に入りのループを動画にしてシェア。",
-  "gallery_quickstart_3": "コレクションが増えたらお気に入りをマーク。"
+  "gallery_quickstart_3": "コレクションが増えたらお気に入りをマーク。",
+  "gallery_preview_hint": "回転プレビュー",
+  "gallery_preview_alt": "保存されたスピンアートのプレビュー",
+  "gallery_editable": "いつでも再開"
 }
 

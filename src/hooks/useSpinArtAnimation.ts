@@ -121,6 +121,7 @@ export function useSpinArtAnimation({
 }: UseSpinArtAnimationProps): UseSpinArtAnimationReturn {
   const rotationRef = useRef(0);
   const animationFrameRef = useRef<number>(0);
+  const gradientProgressRef = refs.gradientProgressRef;
 
   const getPaperCoordinatesForCanvas = useCallback((screenX: number, screenY: number, currentRotation: number): Point => {
     const canvas = canvasRef.current;
@@ -128,7 +129,7 @@ export function useSpinArtAnimation({
     return getPaperCoordinates(screenX, screenY, currentRotation, canvas);
   }, [canvasRef]);
 
-  const render = useCallback(() => {
+  const render = useCallback(function renderFrame() {
     const canvas = canvasRef.current;
     const paper = paperCanvasRef.current;
     if (!canvas || !paper) return;
@@ -171,10 +172,10 @@ export function useSpinArtAnimation({
           currentColor = interpolateColor(
             refs.gradientStartColorRef.current,
             refs.gradientEndColorRef.current,
-            refs.gradientProgressRef.current
+            gradientProgressRef.current
           );
           // Increase gradient progress (0.005 per frame = ~3 seconds for full gradient)
-          refs.gradientProgressRef.current = Math.min(1, refs.gradientProgressRef.current + 0.005);
+          gradientProgressRef.current = Math.min(1, gradientProgressRef.current + 0.005);
         }
         
         const dist = Math.hypot(currentMousePos.x - prevMousePos.x, currentMousePos.y - prevMousePos.y);
@@ -323,8 +324,8 @@ export function useSpinArtAnimation({
       drawIntroOverlay(ctx, canvas.width, canvas.height, introTexts);
     }
 
-    animationFrameRef.current = requestAnimationFrame(render);
-  }, [canvasRef, paperCanvasRef, refs, activeTab, showIntro, introTexts, getPaperCoordinatesForCanvas]);
+    animationFrameRef.current = requestAnimationFrame(renderFrame);
+  }, [canvasRef, paperCanvasRef, refs, activeTab, showIntro, introTexts, getPaperCoordinatesForCanvas, gradientProgressRef]);
 
   useEffect(() => {
     animationFrameRef.current = requestAnimationFrame(render);

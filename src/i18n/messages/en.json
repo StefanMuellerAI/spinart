@@ -33,11 +33,18 @@
   "opacity": "Opacity",
   "eraser": "Eraser",
   "clear_paper": "Clear Paper",
+  "save_to_gallery": "Save to gallery",
+  "saving": "Saving...",
+  "saved_to_gallery": "Saved to gallery",
   "export_video": "Export as Video",
   "export_running": "Exporting...",
   "export_locked": "Export Locked",
+  "export_gif": "Export GIF",
+  "export_mp4": "Export MP4",
+  "export_failed": "Export failed. Please try again.",
   "wait": "Wait",
   "draw_more": "Draw more",
+  "loading": "Loading...",
   "mobile_warning_title": "Not optimized for mobile",
   "mobile_warning_text": "This app is designed for desktop use with keyboard and mouse. Controls and layout might not work as expected on touchscreens.",
   "continue_anyway": "Continue anyway",
@@ -87,6 +94,7 @@
   "nav_gallery": "Gallery",
   "nav_sign_in": "Sign in",
   "nav_sign_up": "Sign up",
+  "continue_editing": "Continue editing",
   "auth_pill_fast": "Fast onboarding",
   "auth_pill_secure": "Secure profile",
   "auth_pill_editor": "Seamless editor",
@@ -119,6 +127,9 @@
   "gallery_quickstart_text": "Use the gallery as a launchpad for new sessions.",
   "gallery_quickstart_1": "Open the editor and try new color mixes.",
   "gallery_quickstart_2": "Export lively loops as video for social posts.",
-  "gallery_quickstart_3": "Mark favorites as your collection grows."
+  "gallery_quickstart_3": "Mark favorites as your collection grows.",
+  "gallery_preview_hint": "Rotating preview",
+  "gallery_preview_alt": "Saved spinart preview",
+  "gallery_editable": "Resume anytime"
 }
 

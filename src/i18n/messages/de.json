@@ -33,11 +33,18 @@
   "opacity": "Deckkraft",
   "eraser": "Radierer",
   "clear_paper": "Papier leeren",
+  "save_to_gallery": "In Galerie speichern",
+  "saving": "Speichert...",
+  "saved_to_gallery": "In Galerie gespeichert",
   "export_video": "Export als Video",
   "export_running": "Export läuft...",
   "export_locked": "Export gesperrt",
+  "export_gif": "GIF exportieren",
+  "export_mp4": "MP4 exportieren",
+  "export_failed": "Export fehlgeschlagen. Bitte erneut versuchen.",
   "wait": "Warte",
   "draw_more": "Zeichne noch",
+  "loading": "Laden...",
   "mobile_warning_title": "Nicht für Mobilgeräte optimiert",
   "mobile_warning_text": "Diese App ist für die Nutzung auf Desktop-Computern mit Tastatur und Maus ausgelegt. Die Steuerung und das Layout funktionieren auf Touchscreens möglicherweise nicht wie erwartet.",
   "continue_anyway": "Trotzdem fortfahren",
@@ -87,6 +94,7 @@
   "nav_gallery": "Galerie",
   "nav_sign_in": "Anmelden",
   "nav_sign_up": "Registrieren",
+  "continue_editing": "Weiter bearbeiten",
   "auth_pill_fast": "Schnelle Registrierung",
   "auth_pill_secure": "Sicheres Profil",
   "auth_pill_editor": "Direkt in den Editor",
@@ -119,6 +127,9 @@
   "gallery_quickstart_text": "Nutze die Galerie als Sprungbrett für neue Sessions.",
   "gallery_quickstart_1": "Starte den Editor und teste neue Farbkombinationen.",
   "gallery_quickstart_2": "Exportiere spannende Loops als Video für Social Media.",
-  "gallery_quickstart_3": "Markiere Favoriten, sobald deine Sammlung wächst."
+  "gallery_quickstart_3": "Markiere Favoriten, sobald deine Sammlung wächst.",
+  "gallery_preview_hint": "Drehende Vorschau",
+  "gallery_preview_alt": "Gespeicherte Spinart Vorschau",
+  "gallery_editable": "Jederzeit fortsetzen"
 }
 

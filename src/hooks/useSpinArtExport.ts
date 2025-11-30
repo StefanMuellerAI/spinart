@@ -1,10 +1,173 @@
 import { useState, useCallback, MutableRefObject } from 'react';
+import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import { CANVAS_SIZE } from '@/types/spinart';
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 
+export type ExportFormat = 'gif' | 'mp4';
+
+const DURATION_SECONDS = 10;
+const FPS = 15;
+const TOTAL_FRAMES = DURATION_SECONDS * FPS;
+const GIF_SIZE = 480;
+const FRAME_DELAY = Math.round(1000 / FPS);
+const FRAME_DURATION_US = Math.round(1_000_000 / FPS);
+const BASE_SPEED = 0.02;
+
+function drawFrame(
+  ctx: CanvasRenderingContext2D,
+  sourceCanvas: HTMLCanvasElement,
+  currentRot: number,
+) {
+  ctx.fillStyle = '#1f2937';
+  ctx.fillRect(0, 0, GIF_SIZE, GIF_SIZE);
+
+  ctx.save();
+  ctx.translate(GIF_SIZE / 2, GIF_SIZE / 2);
+  ctx.rotate(currentRot);
+
+  const scale = (GIF_SIZE / CANVAS_SIZE) * 0.95;
+  ctx.scale(scale, scale);
+  ctx.translate(-CANVAS_SIZE / 2, -CANVAS_SIZE / 2);
+  ctx.drawImage(sourceCanvas, 0, 0);
+  ctx.restore();
+}
+
+async function exportAsGif(
+  sourceCanvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  rotationStep: number,
+  rotationDirection: number,
+) {
+  const gif = GIFEncoder();
+  let currentRot = 0;
+
+  for (let i = 0; i < TOTAL_FRAMES; i++) {
+    drawFrame(ctx, sourceCanvas, currentRot);
+
+    const imageData = ctx.getImageData(0, 0, GIF_SIZE, GIF_SIZE);
+    const palette = quantize(imageData.data, 256);
+    const index = applyPalette(imageData.data, palette);
+
+    gif.writeFrame(index, GIF_SIZE, GIF_SIZE, {
+      palette,
+      delay: FRAME_DELAY
+    });
+
+    currentRot += rotationStep * rotationDirection;
+    if (i % 10 === 0) {
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  gif.finish();
+  const bytes = gif.bytes();
+  const blob = new Blob([new Uint8Array(bytes)], { type: 'image/gif' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'spin-art-export.gif';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function exportAsMp4(
+  sourceCanvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  exportCanvas: HTMLCanvasElement,
+  rotationStep: number,
+  rotationDirection: number,
+) {
+  if (typeof VideoEncoder === 'undefined') {
+    throw new Error('Video export is not supported in this browser.');
+  }
+
+  const target = new ArrayBufferTarget();
+  const muxer = new Muxer({
+    target,
+    fastStart: 'in-memory',
+    video: {
+      codec: 'avc',
+      width: GIF_SIZE,
+      height: GIF_SIZE,
+      frameRate: FPS,
+    },
+  });
+
+  const encoder = new VideoEncoder({
+    output: (chunk, metadata) => muxer.addVideoChunk(chunk, metadata),
+    error: (error) => console.error('MP4 encoding error', error),
+  });
+
+  encoder.configure({
+    codec: 'avc1.4d401e',
+    width: GIF_SIZE,
+    height: GIF_SIZE,
+    framerate: FPS,
+    bitrate: 3_000_000,
+  });
+
+  let currentRot = 0;
+
+  for (let i = 0; i < TOTAL_FRAMES; i++) {
+    drawFrame(ctx, sourceCanvas, currentRot);
+
+    const frame = new VideoFrame(exportCanvas, {
+      timestamp: i * FRAME_DURATION_US,
+      duration: FRAME_DURATION_US,
+    });
+    encoder.encode(frame);
+    frame.close();
+
+    currentRot += rotationStep * rotationDirection;
+
+    if (i % 10 === 0) {
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  await encoder.flush();
+  muxer.finalize();
+
+  const buffer = target.buffer instanceof Uint8Array ? target.buffer : new Uint8Array(target.buffer);
+  const blob = new Blob([buffer], { type: 'video/mp4' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'spin-art-export.mp4';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function exportCanvasAnimation(
+  sourceCanvas: HTMLCanvasElement,
+  playbackSpeed: number,
+  direction: number,
+  format: ExportFormat = 'gif',
+) {
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = GIF_SIZE;
+  exportCanvas.height = GIF_SIZE;
+  const ctx = exportCanvas.getContext('2d', { willReadFrequently: true });
+
+  if (!ctx) {
+    throw new Error('Unable to prepare export canvas.');
+  }
+
+  const userSpeed = playbackSpeed * BASE_SPEED * direction;
+  const rotationStep = Math.abs(userSpeed) || BASE_SPEED;
+  const rotationDirection = userSpeed >= 0 ? 1 : -1;
+
+  if (format === 'mp4') {
+    await exportAsMp4(sourceCanvas, ctx, exportCanvas, rotationStep, rotationDirection);
+    return;
+  }
+
+  await exportAsGif(sourceCanvas, ctx, rotationStep, rotationDirection);
+}
+
 interface UseSpinArtExportReturn {
   isExporting: boolean;
-  handleExportVideo: () => Promise<void>;
+  handleExportVideo: (format?: ExportFormat) => Promise<void>;
 }
 
 export function useSpinArtExport(
@@ -14,105 +177,16 @@ export function useSpinArtExport(
 ): UseSpinArtExportReturn {
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleExportVideo = useCallback(async () => {
+  const handleExportVideo = useCallback(async (format: ExportFormat = 'gif') => {
     if (!paperCanvasRef.current) return;
     setIsExporting(true);
 
-    // GIF Export Settings
-    const DURATION_SECONDS = 10;
-    const FPS = 15;
-    const TOTAL_FRAMES = DURATION_SECONDS * FPS; // 150 frames
-    const GIF_SIZE = 480;
-    const FRAME_DELAY = Math.round(1000 / FPS); // ~67ms per frame
-
-    // Calculate rotation speed for 10 seconds
-    const baseSpeed = 0.02;
-    const userSpeed = playbackSpeed * baseSpeed * direction;
-    const SPEED = Math.abs(userSpeed) || 0.02;
-    const rotationDirection = userSpeed >= 0 ? 1 : -1;
-    
-    // Create export canvas at GIF-friendly size
-    const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = GIF_SIZE;
-    exportCanvas.height = GIF_SIZE;
-    const ctx = exportCanvas.getContext('2d', { willReadFrequently: true });
-    
-    if (!ctx) {
-      setIsExporting(false);
-      return;
-    }
-
-    const drawFrameToCanvas = (currentRot: number) => {
-      // Dark background
-      ctx.fillStyle = '#1f2937';
-      ctx.fillRect(0, 0, GIF_SIZE, GIF_SIZE);
-      
-      ctx.save();
-      ctx.translate(GIF_SIZE / 2, GIF_SIZE / 2);
-      ctx.rotate(currentRot);
-      
-      // Scale to fit the canvas nicely
-      const scale = (GIF_SIZE / CANVAS_SIZE) * 0.95;
-      ctx.scale(scale, scale);
-      ctx.translate(-CANVAS_SIZE / 2, -CANVAS_SIZE / 2);
-      
-      if (paperCanvasRef.current) {
-        ctx.drawImage(paperCanvasRef.current, 0, 0);
-      }
-      ctx.restore();
-    };
-
     try {
-      // Initialize GIF encoder
-      const gif = GIFEncoder();
-      
-      let currentRot = 0;
-      
-      for (let i = 0; i < TOTAL_FRAMES; i++) {
-        // Draw the frame
-        drawFrameToCanvas(currentRot);
-        
-        // Get image data
-        const imageData = ctx.getImageData(0, 0, GIF_SIZE, GIF_SIZE);
-        
-        // Quantize to 256 colors (GIF limit)
-        const palette = quantize(imageData.data, 256);
-        
-        // Apply palette to get indexed pixels
-        const index = applyPalette(imageData.data, palette);
-        
-        // Write frame to GIF
-        gif.writeFrame(index, GIF_SIZE, GIF_SIZE, { 
-          palette, 
-          delay: FRAME_DELAY 
-        });
-        
-        // Update rotation for next frame
-        currentRot += SPEED * rotationDirection;
-        
-        // Yield to UI every 10 frames to prevent freezing
-        if (i % 10 === 0) {
-          await new Promise(r => setTimeout(r, 0));
-        }
-      }
-      
-      // Finalize GIF
-      gif.finish();
-      
-      // Create download
-      const bytes = gif.bytes();
-      const blob = new Blob([new Uint8Array(bytes)], { type: 'image/gif' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'spin-art-export.gif';
-      a.click();
-      URL.revokeObjectURL(url);
-      
-    } catch (e) {
-      console.error("GIF export failed:", e);
+      await exportCanvasAnimation(paperCanvasRef.current, playbackSpeed, direction, format);
+    } catch (error) {
+      console.error('Export failed:', error);
     }
-    
+
     setIsExporting(false);
   }, [paperCanvasRef, playbackSpeed, direction]);
 
