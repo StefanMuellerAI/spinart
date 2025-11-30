@@ -130,6 +130,8 @@
   "gallery_quickstart_3": "コレクションが増えたらお気に入りをマーク。",
   "gallery_preview_hint": "回転プレビュー",
   "gallery_preview_alt": "保存されたスピンアートのプレビュー",
-  "gallery_editable": "いつでも再開"
+  "gallery_editable": "いつでも再開",
+  "gallery_delete": "削除",
+  "gallery_delete_confirm": "このデザインをギャラリーから削除しますか？"
 }
 

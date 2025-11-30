@@ -5,13 +5,27 @@ import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 
 export type ExportFormat = 'gif' | 'mp4';
 
-const DURATION_SECONDS = 10;
 const FPS = 15;
-const TOTAL_FRAMES = DURATION_SECONDS * FPS;
 const GIF_SIZE = 480;
 const FRAME_DELAY = Math.round(1000 / FPS);
 const FRAME_DURATION_US = Math.round(1_000_000 / FPS);
 const BASE_SPEED = 0.02;
+const MAX_PLAYBACK_SPEED = 50;
+
+type ExportSegment = {
+  durationSeconds: number;
+  speed: number;
+};
+
+const GIF_SEGMENTS: ExportSegment[] = [
+  { durationSeconds: 5, speed: 9.1 },
+];
+
+const MP4_SEGMENTS: ExportSegment[] = [
+  { durationSeconds: 5, speed: 9.1 },
+  { durationSeconds: 5, speed: 20 },
+  { durationSeconds: 5, speed: MAX_PLAYBACK_SPEED },
+];
 
 function drawFrame(
   ctx: CanvasRenderingContext2D,
@@ -35,27 +49,32 @@ function drawFrame(
 async function exportAsGif(
   sourceCanvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  rotationStep: number,
   rotationDirection: number,
+  segments: ExportSegment[],
 ) {
   const gif = GIFEncoder();
   let currentRot = 0;
 
-  for (let i = 0; i < TOTAL_FRAMES; i++) {
-    drawFrame(ctx, sourceCanvas, currentRot);
+  for (const segment of segments) {
+    const framesInSegment = Math.round(segment.durationSeconds * FPS);
+    const rotationStep = Math.max(BASE_SPEED * segment.speed, BASE_SPEED);
 
-    const imageData = ctx.getImageData(0, 0, GIF_SIZE, GIF_SIZE);
-    const palette = quantize(imageData.data, 256);
-    const index = applyPalette(imageData.data, palette);
+    for (let i = 0; i < framesInSegment; i++) {
+      drawFrame(ctx, sourceCanvas, currentRot);
 
-    gif.writeFrame(index, GIF_SIZE, GIF_SIZE, {
-      palette,
-      delay: FRAME_DELAY
-    });
+      const imageData = ctx.getImageData(0, 0, GIF_SIZE, GIF_SIZE);
+      const palette = quantize(imageData.data, 256);
+      const index = applyPalette(imageData.data, palette);
 
-    currentRot += rotationStep * rotationDirection;
-    if (i % 10 === 0) {
-      await new Promise(r => setTimeout(r, 0));
+      gif.writeFrame(index, GIF_SIZE, GIF_SIZE, {
+        palette,
+        delay: FRAME_DELAY
+      });
+
+      currentRot += rotationStep * rotationDirection;
+      if (i % 10 === 0) {
+        await new Promise(r => setTimeout(r, 0));
+      }
     }
   }
 
@@ -74,8 +93,8 @@ async function exportAsMp4(
   sourceCanvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
   exportCanvas: HTMLCanvasElement,
-  rotationStep: number,
   rotationDirection: number,
+  segments: ExportSegment[],
 ) {
   if (typeof VideoEncoder === 'undefined') {
     throw new Error('Video export is not supported in this browser.');
@@ -107,21 +126,28 @@ async function exportAsMp4(
   });
 
   let currentRot = 0;
+  let frameIndex = 0;
 
-  for (let i = 0; i < TOTAL_FRAMES; i++) {
-    drawFrame(ctx, sourceCanvas, currentRot);
+  for (const segment of segments) {
+    const framesInSegment = Math.round(segment.durationSeconds * FPS);
+    const rotationStep = Math.max(BASE_SPEED * segment.speed, BASE_SPEED);
 
-    const frame = new VideoFrame(exportCanvas, {
-      timestamp: i * FRAME_DURATION_US,
-      duration: FRAME_DURATION_US,
-    });
-    encoder.encode(frame);
-    frame.close();
+    for (let i = 0; i < framesInSegment; i++) {
+      drawFrame(ctx, sourceCanvas, currentRot);
 
-    currentRot += rotationStep * rotationDirection;
+      const frame = new VideoFrame(exportCanvas, {
+        timestamp: frameIndex * FRAME_DURATION_US,
+        duration: FRAME_DURATION_US,
+      });
+      encoder.encode(frame);
+      frame.close();
 
-    if (i % 10 === 0) {
-      await new Promise(r => setTimeout(r, 0));
+      currentRot += rotationStep * rotationDirection;
+      frameIndex += 1;
+
+      if (frameIndex % 10 === 0) {
+        await new Promise(r => setTimeout(r, 0));
+      }
     }
   }
 
@@ -153,16 +179,15 @@ export async function exportCanvasAnimation(
     throw new Error('Unable to prepare export canvas.');
   }
 
-  const userSpeed = playbackSpeed * BASE_SPEED * direction;
-  const rotationStep = Math.abs(userSpeed) || BASE_SPEED;
-  const rotationDirection = userSpeed >= 0 ? 1 : -1;
+  const segments = format === 'mp4' ? MP4_SEGMENTS : GIF_SEGMENTS;
+  const rotationDirection = direction >= 0 ? 1 : -1;
 
   if (format === 'mp4') {
-    await exportAsMp4(sourceCanvas, ctx, exportCanvas, rotationStep, rotationDirection);
+    await exportAsMp4(sourceCanvas, ctx, exportCanvas, rotationDirection, segments);
     return;
   }
 
-  await exportAsGif(sourceCanvas, ctx, rotationStep, rotationDirection);
+  await exportAsGif(sourceCanvas, ctx, rotationDirection, segments);
 }
 
 interface UseSpinArtExportReturn {
