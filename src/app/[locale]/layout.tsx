@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -71,17 +71,6 @@ export default async function LocaleLayout({
         <body className="antialiased">
           <NextIntlClientProvider locale={locale} messages={messages}>
             <AppProvider locale={locale as Locale}>
-              <div className="flex items-center justify-end gap-3 px-4 py-3 bg-gray-100 dark:bg-gray-900 text-sm">
-                <SignedOut>
-                  <div className="flex items-center gap-2">
-                    <SignInButton />
-                    <SignUpButton />
-                  </div>
-                </SignedOut>
-                <SignedIn>
-                  <UserButton />
-                </SignedIn>
-              </div>
               {children}
             </AppProvider>
           </NextIntlClientProvider>
