@@ -19,15 +19,12 @@ interface AppProviderProps {
 }
 
 export function AppProvider({ children, locale }: AppProviderProps) {
-  const [theme, setTheme] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    // Load saved theme preference
+  const [mounted] = useState<boolean>(() => typeof window !== 'undefined');
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'dark';
     const savedTheme = localStorage.getItem('spinart-theme') as Theme;
-    if (savedTheme) setTheme(savedTheme);
-  }, []);
+    return savedTheme ?? 'dark';
+  });
 
   useEffect(() => {
     if (mounted) {

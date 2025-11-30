@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import { Undo2, Redo2, Trash2, Video, Paintbrush, Square, PanelRightClose, PanelRightOpen, ChevronUp, ChevronDown } from 'lucide-react';
+import { Undo2, Redo2, Trash2, Paintbrush, Square, PanelRightClose, PanelRightOpen, ChevronUp, ChevronDown, Save, Loader2 } from 'lucide-react';
 import { ToolTab, TipShape, StampShape } from '@/types/spinart';
 import { PenState, ShapeState } from '@/hooks/useSpinArtDrawing';
 import { PenControls } from './PenControls';
@@ -22,16 +22,12 @@ interface ToolbarProps {
   // History actions
   canUndo: boolean;
   canRedo: boolean;
-  isExporting: boolean;
   onUndo: () => void;
   onRedo: () => void;
   onEraseAll: () => void;
-  onExportVideo: () => void;
-  
-  // Export restrictions
-  isTimeRequirementMet: boolean;
-  drawCount: number;
-  isMounted: boolean;
+  onSaveDraft: () => void;
+  isSaving: boolean;
+  saveMessage?: string;
   
   // Pen state
   penState: PenState;
@@ -78,14 +74,12 @@ export function Toolbar({
   setActiveTab,
   canUndo,
   canRedo,
-  isExporting,
   onUndo,
   onRedo,
   onEraseAll,
-  onExportVideo,
-  isTimeRequirementMet,
-  drawCount,
-  isMounted,
+  onSaveDraft,
+  isSaving,
+  saveMessage,
   penState,
   setPenColor,
   setPenSize,
@@ -119,7 +113,7 @@ export function Toolbar({
   onToggleCollapse,
 }: ToolbarProps) {
   const t = useTranslations();
-  const canExport = isTimeRequirementMet && drawCount >= 15;
+  const saveLabel = isSaving ? t('saving') : t('save_to_gallery');
 
   // Bottom toolbar layout (for tablets in portrait mode)
   if (useBottomToolbar) {
@@ -151,7 +145,7 @@ export function Toolbar({
               variant="outline"
               size="icon-sm"
               onClick={onUndo}
-              disabled={!canUndo || isExporting}
+              disabled={!canUndo || isSaving}
               className="min-w-[44px] min-h-[44px]"
             >
               <Undo2 className="size-5" />
@@ -160,7 +154,7 @@ export function Toolbar({
               variant="outline"
               size="icon-sm"
               onClick={onRedo}
-              disabled={!canRedo || isExporting}
+              disabled={!canRedo || isSaving}
               className="min-w-[44px] min-h-[44px]"
             >
               <Redo2 className="size-5" />
@@ -169,7 +163,7 @@ export function Toolbar({
               variant="destructive"
               size="icon-sm"
               onClick={onEraseAll}
-              disabled={isExporting}
+              disabled={isSaving}
               className="min-w-[44px] min-h-[44px]"
             >
               <Trash2 className="size-5" />
@@ -177,11 +171,12 @@ export function Toolbar({
             <Button
               variant="secondary"
               size="icon-sm"
-              onClick={onExportVideo}
-              disabled={isExporting || !canExport}
+              onClick={onSaveDraft}
+              disabled={isSaving}
+              aria-label={saveLabel}
               className="text-purple-600 dark:text-purple-400 min-w-[44px] min-h-[44px]"
             >
-              <Video className="size-5" />
+              {isSaving ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
             </Button>
           </div>
           
@@ -292,7 +287,7 @@ export function Toolbar({
                 variant="outline"
                 size="icon-sm"
                 onClick={onUndo}
-                disabled={!canUndo || isExporting}
+                disabled={!canUndo || isSaving}
               >
                 <Undo2 className="size-4" />
               </Button>
@@ -306,7 +301,7 @@ export function Toolbar({
                 variant="outline"
                 size="icon-sm"
                 onClick={onRedo}
-                disabled={!canRedo || isExporting}
+                disabled={!canRedo || isSaving}
               >
                 <Redo2 className="size-4" />
               </Button>
@@ -320,7 +315,7 @@ export function Toolbar({
                 variant="destructive"
                 size="icon-sm"
                 onClick={onEraseAll}
-                disabled={isExporting}
+                disabled={isSaving}
               >
                 <Trash2 className="size-4" />
               </Button>
@@ -376,7 +371,7 @@ export function Toolbar({
               variant="outline"
               size="icon-sm"
               onClick={onUndo}
-              disabled={!canUndo || isExporting}
+              disabled={!canUndo || isSaving}
             >
               <Undo2 className="size-4" />
             </Button>
@@ -390,7 +385,7 @@ export function Toolbar({
               variant="outline"
               size="icon-sm"
               onClick={onRedo}
-              disabled={!canRedo || isExporting}
+              disabled={!canRedo || isSaving}
             >
               <Redo2 className="size-4" />
             </Button>
@@ -404,7 +399,7 @@ export function Toolbar({
               variant="destructive"
               size="icon-sm"
               onClick={onEraseAll}
-              disabled={isExporting}
+              disabled={isSaving}
             >
               <Trash2 className="size-4" />
             </Button>
@@ -417,15 +412,16 @@ export function Toolbar({
             <Button
               variant="secondary"
               size="icon-sm"
-              onClick={onExportVideo}
-              disabled={isExporting || !canExport}
+              onClick={onSaveDraft}
+              disabled={isSaving}
+              aria-label={saveLabel}
               className="text-purple-600 dark:text-purple-400"
             >
-              <Video className="size-4" />
+              {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
-            {isMounted ? (!canExport ? t('export_locked') : t('export_video')) : t('export_video')}
+            {saveMessage || saveLabel}
           </TooltipContent>
         </Tooltip>
       </div>

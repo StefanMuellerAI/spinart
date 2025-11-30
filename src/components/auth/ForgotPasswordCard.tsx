@@ -23,6 +23,17 @@ export default function ForgotPasswordCard({ locale }: ForgotPasswordCardProps) 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const getErrorMessage = (error: unknown) => {
+    if (error && typeof error === 'object' && 'errors' in error) {
+      const maybeErrors = (error as { errors?: Array<{ message?: string }> }).errors;
+      const firstMessage = maybeErrors?.[0]?.message;
+      if (typeof firstMessage === 'string') {
+        return firstMessage;
+      }
+    }
+    return t('auth_reset_error');
+  };
+
   const handleRequest = async (event: FormEvent) => {
     event.preventDefault();
     if (!isLoaded) return;
@@ -35,8 +46,8 @@ export default function ForgotPasswordCard({ locale }: ForgotPasswordCardProps) 
         identifier: email,
       });
       setStep('verify');
-    } catch (err: any) {
-      setError(err?.errors?.[0]?.message ?? t('auth_reset_error'));
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -59,8 +70,8 @@ export default function ForgotPasswordCard({ locale }: ForgotPasswordCardProps) 
         setStep('complete');
         setTimeout(() => router.push(`/${locale}/gallery`), 800);
       }
-    } catch (err: any) {
-      setError(err?.errors?.[0]?.message ?? t('auth_reset_error'));
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
