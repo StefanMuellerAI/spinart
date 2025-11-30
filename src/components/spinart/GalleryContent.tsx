@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { useTranslations } from 'next-intl';
 import { ArrowRight, Download, Loader2, RefreshCcw, Sparkles, Video } from 'lucide-react';
 
@@ -150,7 +150,7 @@ export function GalleryContent({ locale }: GalleryContentProps) {
                       animationDirection: draft.direction >= 0 ? 'normal' : 'reverse',
                     }}
                   >
-                    <Image
+                    <NextImage
                       src={draft.imageDataUrl}
                       alt={t('gallery_preview_alt')}
                       fill

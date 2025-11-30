@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { setRequestLocale } from 'next-intl/server';
 import SpinArt from '@/components/SpinArt';
 import LegalFooter from '@/components/LegalFooter';
@@ -17,7 +18,9 @@ export default async function Home({ params }: HomeProps) {
     <main className="flex flex-col min-h-screen bg-white dark:bg-gray-800 transition-colors duration-300">
       <Header />
       <div className="flex-1 flex flex-col items-center justify-center">
-        <SpinArt />
+        <Suspense fallback={<div className="py-10 text-gray-500">Loading...</div>}>
+          <SpinArt />
+        </Suspense>
       </div>
       <LegalFooter />
     </main>
